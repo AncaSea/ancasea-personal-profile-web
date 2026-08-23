@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og';
 import { prisma } from '@/utils/prisma';
 
-export const runtime = 'edge';
+
 
 export async function GET() {
   try {
