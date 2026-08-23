@@ -1,56 +1,227 @@
 "use client";
-import { useRef, useEffect } from "react";
-import gsap from "gsap";
+import { useState } from "react";
 import type { Project } from "@prisma/client";
+import { cn } from "@/lib/utils";
+import { X } from "lucide-react";
+import { MatrixTrail } from "./canvas/MatrixTrail";
+import { useRef } from "react";
 
 interface ProjectsProps {
-  projects: Project[];
+  featuredProjects: Project[];
+  regularProjects: Project[];
 }
 
-export function Projects({ projects }: ProjectsProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+function TiltCard({ children, onClick }: { children: React.ReactNode, onClick: () => void }) {
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      const cards = gsap.utils.toArray<HTMLElement>(".project-card");
-      
-      cards.forEach(card => {
-        card.addEventListener("mousemove", (e: any) => {
-          const rect = card.getBoundingClientRect();
-          const x = (e.clientX - rect.left) / rect.width - 0.5;
-          const y = (e.clientY - rect.top) / rect.height - 0.5;
-          
-          gsap.to(card, {
-            rotationY: x * 20,
-            rotationX: -y * 20,
-            transformPerspective: 1000,
-            ease: "power2.out",
-          });
-        });
-        
-        card.addEventListener("mouseleave", () => {
-          gsap.to(card, {
-            rotationY: 0,
-            rotationX: 0,
-            ease: "power2.out",
-          });
-        });
-      });
-    }, containerRef);
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!cardRef.current) return;
+    const rect = cardRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left; // x position within the element.
+    const y = e.clientY - rect.top;  // y position within the element.
+    
+    const centerX = rect.width / 2;
+    const centerY = rect.height / 2;
+    
+    const rotateX = ((y - centerY) / centerY) * -10; // Max rotation 10deg
+    const rotateY = ((x - centerX) / centerX) * 10;
+    
+    cardRef.current.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
+  };
 
-    return () => ctx.revert();
-  }, [projects]);
+  const handleMouseLeave = () => {
+    if (!cardRef.current) return;
+    cardRef.current.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
+  };
 
   return (
-    <section className="py-24 px-4 min-h-screen relative z-10" ref={containerRef}>
-      <div className="max-w-7xl mx-auto">
-        <h3 className="text-4xl md:text-7xl font-black mb-16 text-center tracking-tighter">
-          Featured <span className="text-primary">Works</span>
+    <div 
+      ref={cardRef}
+      className="project-card glass-panel rounded-3xl p-6 hover:border-primary/50 transition-all duration-200 ease-out flex flex-col h-full cursor-pointer"
+      onClick={onClick}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ transformStyle: 'preserve-3d' }}
+    >
+      <div style={{ transform: 'translateZ(30px)' }} className="flex flex-col h-full pointer-events-none">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export function Projects({ featuredProjects, regularProjects }: ProjectsProps) {
+  const [activeProject, setActiveProject] = useState<Project | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+
+  // Helper to get Gacha Rarity Colors for Podium
+  const getGlowStyle = (rank: number) => {
+    if (rank === 1) return { color: "#FFD700", border: "border-[#FFD700]/50", shadow: "shadow-[0_0_40px_#FFD700]", hoverShadow: "hover:shadow-[0_0_80px_#FFD700]" }; // Mythic Gold
+    if (rank === 2) return { color: "#b829ea", border: "border-[#b829ea]/50", shadow: "shadow-[0_0_30px_#b829ea]", hoverShadow: "hover:shadow-[0_0_60px_#b829ea]" }; // Epic Purple
+    if (rank === 3) return { color: "#00e5ff", border: "border-[#00e5ff]/50", shadow: "shadow-[0_0_30px_#00e5ff]", hoverShadow: "hover:shadow-[0_0_60px_#00e5ff]" }; // Rare Blue
+    return { color: "", border: "", shadow: "", hoverShadow: "" };
+  };
+
+  // Reorder for Podium: [Rank 2 (Left), Rank 1 (Center), Rank 3 (Right)]
+  const podiumOrder = [
+    featuredProjects[1] ? { project: featuredProjects[1], rank: 2, position: 'left' } : null,
+    featuredProjects[0] ? { project: featuredProjects[0], rank: 1, position: 'center' } : null,
+    featuredProjects[2] ? { project: featuredProjects[2], rank: 3, position: 'right' } : null,
+  ].filter(Boolean);
+
+  return (
+    <section id="projects" className="relative z-10 bg-background pt-24 pb-12 overflow-hidden">
+      <MatrixTrail />
+      
+      {/* 1. PODIUM FEATURED SECTION */}
+      {featuredProjects.length > 0 && (
+        <div className="max-w-7xl mx-auto px-4 w-full mb-24">
+          <div className="text-center mb-16">
+            <h3 className="text-5xl md:text-7xl font-black tracking-tighter mb-4">
+              Featured <span className="text-primary">Masterpieces</span>
+            </h3>
+            <p className="text-muted-foreground text-lg">Click to reveal details.</p>
+          </div>
+
+          <div className="flex flex-col md:flex-row justify-center items-center md:items-end gap-6 md:gap-4 h-auto md:h-[500px]">
+            {podiumOrder.map((item) => {
+              if (!item) return null;
+              const { project, rank, position } = item;
+              const glow = getGlowStyle(rank);
+              
+              const isHovered = hoveredId === project.id;
+              const isOthersHovered = hoveredId !== null && hoveredId !== project.id;
+              
+              // Base sizing
+              const baseWidth = position === 'center' ? "w-full md:w-1/3 h-[300px] md:h-[450px]" : "w-full md:w-1/4 h-[250px] md:h-[350px]";
+              
+              // Dynamic states based on hover
+              let scale = position === 'center' ? "scale-100 md:scale-110" : "scale-100 md:scale-95";
+              let zIndex = position === 'center' ? "z-30" : "z-20";
+              let opacity = position === 'center' ? "opacity-100" : "opacity-80";
+
+              if (isHovered) {
+                scale = "scale-[1.05] md:scale-[1.20]";
+                zIndex = "z-50";
+                opacity = "opacity-100";
+              } else if (isOthersHovered) {
+                scale = "scale-95 md:scale-90";
+                zIndex = "z-10";
+                opacity = "opacity-40";
+              }
+
+              return (
+                <div 
+                  key={project.id} 
+                  onClick={() => setActiveProject(project)}
+                  onMouseEnter={() => setHoveredId(project.id)}
+                  onMouseLeave={() => setHoveredId(null)}
+                  className={cn(
+                    "relative cursor-pointer rounded-3xl bg-background border border-border transition-all duration-500 ease-out transform",
+                    baseWidth, scale, zIndex, opacity,
+                    glow.border,
+                    isHovered ? glow.hoverShadow : glow.shadow
+                  )}
+                >
+                  {/* Image Background */}
+                  <div className="absolute inset-0 rounded-3xl overflow-hidden opacity-40 group-hover:opacity-70 transition-opacity duration-500">
+                    {project.imageUrl ? (
+                      <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full bg-muted flex items-center justify-center font-mono text-6xl opacity-30">
+                        {project.title.substring(0, 2).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Gradient Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent rounded-3xl pointer-events-none" />
+
+                  {/* Content */}
+                  <div className="absolute bottom-0 left-0 w-full p-6 flex flex-col justify-end">
+                    <span className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: glow.color }}>
+                      {rank === 1 ? "Mythic Rank" : rank === 2 ? "Epic Rank" : "Rare Rank"}
+                    </span>
+                    <h4 className="text-2xl md:text-3xl font-bold line-clamp-2">{project.title}</h4>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* 2. MODAL OVERLAY */}
+      {activeProject && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-background/80 backdrop-blur-md" 
+            onClick={() => setActiveProject(null)}
+          />
+          <div className="relative w-full max-w-4xl glass-panel bg-card/90 rounded-3xl shadow-2xl border border-border overflow-hidden flex flex-col md:flex-row h-[80vh] md:h-[60vh] animate-in zoom-in-95 duration-300">
+            <button 
+              onClick={() => setActiveProject(null)}
+              className="absolute top-4 right-4 z-10 w-10 h-10 bg-background/50 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-colors"
+            >
+              <X size={20} />
+            </button>
+            
+            <div className="w-full md:w-1/2 h-48 md:h-full bg-muted relative">
+              {activeProject.imageUrl ? (
+                <img src={activeProject.imageUrl} alt={activeProject.title} className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center font-mono text-6xl opacity-30">
+                  {activeProject.title.substring(0, 2).toUpperCase()}
+                </div>
+              )}
+            </div>
+            
+            <div className="w-full md:w-1/2 p-8 overflow-y-auto flex flex-col">
+              <h3 className="text-3xl font-black mb-4">{activeProject.title}</h3>
+              <p className="text-muted-foreground mb-8 leading-relaxed">
+                {activeProject.description}
+              </p>
+              
+              <div className="mb-8">
+                <h4 className="text-sm font-bold uppercase tracking-widest text-primary mb-3">Tech Stack</h4>
+                <div className="flex flex-wrap gap-2">
+                  {(() => {
+                    let stack: string[] = [];
+                    try {
+                      stack = Array.isArray(activeProject.techStack) ? activeProject.techStack as string[] : JSON.parse(activeProject.techStack as string);
+                    } catch(e) {}
+                    return stack.map((tech, j) => (
+                      <span key={j} className="text-sm px-3 py-1.5 bg-primary/10 text-primary rounded-md font-mono">
+                        {tech}
+                      </span>
+                    ));
+                  })()}
+                </div>
+              </div>
+
+              {activeProject.link && (
+                <a 
+                  href={activeProject.link} 
+                  target="_blank" 
+                  rel="noreferrer" 
+                  className="mt-auto block w-full py-4 bg-primary text-primary-foreground text-center rounded-xl font-bold hover:scale-[1.02] transition-transform"
+                >
+                  Visit Project
+                </a>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. REGULAR GRID SECTION */}
+      <div className="max-w-7xl mx-auto px-4 mt-24">
+        <h3 className="text-3xl md:text-5xl font-black mb-16 tracking-tighter">
+          Latest <span className="text-primary">Experiments</span>
         </h3>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 perspective-1000">
-          {projects.length > 0 ? projects.map((project, i) => {
-            // Parse techStack assuming it's stored as JSON array of strings
+          {regularProjects.length > 0 ? regularProjects.map((project, i) => {
             let stack: string[] = [];
             try {
               if (project.techStack) {
@@ -61,42 +232,29 @@ export function Projects({ projects }: ProjectsProps) {
             } catch (e) {}
 
             return (
-              <div 
-                key={project.id}
-                className="project-card glass-panel rounded-3xl p-6 cursor-pointer transform-style-3d group hover:border-primary/50 transition-colors"
-              >
-                <div className="h-48 rounded-xl bg-primary/10 mb-6 overflow-hidden relative border border-primary/20">
-                   {project.imageUrl ? (
-                     <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
-                   ) : (
-                     <div className="absolute inset-0 flex items-center justify-center text-primary/40 font-mono text-4xl font-bold group-hover:scale-110 transition-transform">
-                       {project.title.substring(0,2).toUpperCase()}
-                     </div>
-                   )}
-                </div>
-                
+              <TiltCard key={project.id} onClick={() => setActiveProject(project)}>
                 <h4 className="text-2xl font-bold mb-3">{project.title}</h4>
                 <p className="text-muted-foreground mb-6 line-clamp-3">
                   {project.description}
                 </p>
                 
-                <div className="flex flex-wrap gap-2 mb-6">
-                  {stack.slice(0, 4).map((tech, j) => (
-                    <span key={j} className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-md font-mono">
+                <div className="flex flex-wrap gap-2 mb-6 mt-auto">
+                  {stack.slice(0, 3).map((tech, j) => (
+                    <span key={j} className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-md font-mono pointer-events-auto">
                       {tech}
                     </span>
                   ))}
-                  {stack.length > 4 && <span className="text-xs px-2 py-1 bg-primary/5 text-primary/50 rounded-md">+{stack.length - 4}</span>}
+                  {stack.length > 3 && <span className="text-xs px-2 py-1 bg-primary/5 text-primary/50 rounded-md pointer-events-auto">+{stack.length - 3}</span>}
                 </div>
-
-                {project.link && (
-                  <a href={project.link} target="_blank" rel="noreferrer" className="inline-block text-sm font-bold uppercase tracking-wider text-primary hover:text-white transition-colors">
-                    View Project &rarr;
-                  </a>
-                )}
-              </div>
+              </TiltCard>
             );
           }) : <p className="text-muted-foreground text-center col-span-full">No projects found.</p>}
+        </div>
+
+        <div className="flex justify-center mt-16">
+          <a href="/projects" className="px-8 py-4 bg-primary text-primary-foreground rounded-full font-bold hover:scale-105 transition-transform shadow-xl hover:shadow-[0_0_30px_var(--color-primary)]">
+            View All Archive
+          </a>
         </div>
       </div>
     </section>

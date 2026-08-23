@@ -48,6 +48,7 @@ model Project {
   imageUrl    String?
   techStack   Json?
   link        String?
+  isFeatured  Boolean  @default(false)
   createdAt   DateTime @default(now())
 }
 model Blog {

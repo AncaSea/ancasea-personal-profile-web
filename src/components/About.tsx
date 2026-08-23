@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { Experience, Education, Skill } from "@prisma/client";
+import { GridDistortion } from "./canvas/GridDistortion";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -38,7 +39,10 @@ export function About({ experiences, education, skills }: AboutProps) {
   }, []);
 
   return (
-    <section ref={containerRef} className="py-24 px-4 min-h-screen bg-background/50 backdrop-blur-sm relative z-10">
+    <section ref={containerRef} className="py-24 px-4 min-h-screen bg-background/50 backdrop-blur-sm relative z-10 overflow-hidden">
+      {/* Canvas Effect */}
+      <GridDistortion />
+
       <div className="max-w-6xl mx-auto space-y-24">
         
         {/* Experience Section */}

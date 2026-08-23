@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
 import SmoothScroll from "@/components/SmoothScroll";
+import SectionNavigation from "@/components/SectionNavigation";
+import { ThemeSwitcher } from "@/components/ThemeSwitcher";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -35,6 +37,8 @@ export default function RootLayout({
         >
           <SmoothScroll>
             {children}
+            <SectionNavigation />
+            <ThemeSwitcher />
           </SmoothScroll>
         </ThemeProvider>
       </body>
