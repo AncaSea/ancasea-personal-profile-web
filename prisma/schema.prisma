@@ -1,0 +1,73 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model ProfileInfo {
+  id        String   @id @default(uuid())
+  name      String
+  tagline   String?
+  bio       String?  @db.Text
+  photoUrl  String?
+  socials   Json?
+  updatedAt DateTime @updatedAt
+}
+
+model Experience {
+  id          String   @id @default(uuid())
+  company     String
+  position    String
+  startDate   String?
+  endDate     String?
+  description String?  @db.Text
+  createdAt   DateTime @default(now())
+}
+
+model Education {
+  id          String   @id @default(uuid())
+  institution String
+  degree      String
+  year        String?
+  createdAt   DateTime @default(now())
+}
+
+model Skill {
+  id          String   @id @default(uuid())
+  name        String
+  category    String?
+  createdAt   DateTime @default(now())
+}
+
+model Project {
+  id          String   @id @default(uuid())
+  title       String
+  description String?  @db.Text
+  imageUrl    String?
+  techStack   Json?
+  link        String?
+  createdAt   DateTime @default(now())
+}
+model Blog {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  content     String   @db.Text
+  excerpt     String?  @db.Text
+  coverImage  String?
+  published   Boolean  @default(false)
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AiUsageLog {
+  id                  String   @id @default(uuid())
+  action              String
+  promptTokenCount    Int
+  candidatesTokenCount Int
+  totalTokenCount     Int
+  createdAt           DateTime @default(now())
+}
