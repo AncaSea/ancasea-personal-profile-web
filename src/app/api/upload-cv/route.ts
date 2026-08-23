@@ -100,11 +100,15 @@ export async function POST(request: Request) {
       await prisma.aiUsageLog.create({
         data: {
           action: 'extract_cv',
-          promptTokenCount: response.usageMetadata.promptTokenCount,
-          candidatesTokenCount: response.usageMetadata.candidatesTokenCount,
-          totalTokenCount: response.usageMetadata.totalTokenCount
+          promptTokenCount: response.usageMetadata.promptTokenCount || 0,
+          candidatesTokenCount: response.usageMetadata.candidatesTokenCount || 0,
+          totalTokenCount: response.usageMetadata.totalTokenCount || 0
         }
       });
+    }
+    
+    if (!jsonText) {
+      throw new Error("No text returned from Gemini API");
     }
     const parsedData = JSON.parse(jsonText);
 
