@@ -49,6 +49,8 @@ model Project {
   techStack   Json?
   link        String?
   isFeatured  Boolean  @default(false)
+  order       Int      @default(0)
+  featuredOrder Int    @default(0)
   createdAt   DateTime @default(now())
 }
 model Blog {
@@ -71,4 +73,11 @@ model AiUsageLog {
   candidatesTokenCount Int
   totalTokenCount     Int
   createdAt           DateTime @default(now())
+}
+model SystemLog {
+  id        String   @id @default(cuid())
+  level     String   // 'INFO', 'WARNING', 'ERROR'
+  message   String
+  context   String?  // JSON stringified context or stack trace
+  createdAt DateTime @default(now())
 }

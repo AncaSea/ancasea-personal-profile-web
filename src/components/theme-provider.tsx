@@ -4,21 +4,60 @@ import * as React from "react"
 import { ThemeProvider as NextThemesProvider, useTheme } from "next-themes"
 
 function RealTimeThemeEnforcer({ children }: { children: React.ReactNode }) {
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   
   React.useEffect(() => {
-    // Only enforce real-time theme on first visit (when no theme is in localStorage)
-    const storedTheme = localStorage.getItem('theme');
-    if (!storedTheme || storedTheme === 'system') {
-      const hour = new Date().getHours();
-      // Cyberpunk Neon at night (18:00 - 05:59), Minimalist Light at day (06:00 - 17:59)
-      if (hour >= 18 || hour < 6) {
-        setTheme('theme-futuristic');
-      } else {
-        setTheme('light');
+    let animationFrameId: number;
+    
+    const enforceTheme = () => {
+      if (localStorage.getItem('theme-mode-auto') === 'true') {
+        const hour = new Date().getHours();
+        const timeTheme = (hour >= 18 || hour < 6) ? 'theme-futuristic' : 'light';
+        
+        // Aggressively ensure the class is present on the root element.
+        // next-themes sometimes silently drops the setTheme call during hydration.
+        const root = document.documentElement;
+        if (!root.classList.contains(timeTheme)) {
+           // We explicitly call setTheme so next-themes knows about it
+           setTheme(timeTheme);
+           // AND we force the class immediately to prevent visual glitches
+           root.classList.remove('light', 'theme-futuristic', 'theme-glass', 'dark');
+           root.classList.add(timeTheme);
+           root.style.colorScheme = timeTheme === 'light' ? 'light' : 'dark';
+        }
       }
-    }
-  }, [setTheme]);
+    };
+
+    // Run immediately
+    enforceTheme();
+
+    // Aggressively check for the first 2 seconds to beat any next-themes hydration reverts
+    let checks = 0;
+    const aggressiveCheck = () => {
+      enforceTheme();
+      checks++;
+      if (checks < 20) {
+        animationFrameId = requestAnimationFrame(aggressiveCheck);
+      }
+    };
+    animationFrameId = requestAnimationFrame(aggressiveCheck);
+
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') enforceTheme();
+    };
+    window.addEventListener('visibilitychange', handleVisibility);
+    
+    // BEST PRACTICE: Check the clock every 1 minute.
+    // This provides a seamless "magic" transition for active readers 
+    // exactly at 18:00, while consuming virtually 0% background CPU.
+    const intervalId = setInterval(enforceTheme, 60000);
+
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      clearInterval(intervalId);
+      window.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [setTheme, theme]);
 
   return <>{children}</>;
 }

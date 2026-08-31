@@ -57,7 +57,7 @@ export function Hero({ profile }: { profile: ProfileInfo | null }) {
   const tagline = profile?.tagline || "Building Digital Experiences";
 
   return (
-    <section ref={heroRef} className="relative h-screen flex items-center justify-center overflow-hidden perspective-1000">
+    <section id="hero" ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-12 md:py-0 overflow-hidden perspective-1000">
       
       {/* Dual Vibe Dynamic Background */}
       <div 

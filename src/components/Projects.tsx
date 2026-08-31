@@ -2,7 +2,7 @@
 import { useState } from "react";
 import type { Project } from "@prisma/client";
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react";
+import { X, Star } from "lucide-react";
 import { MatrixTrail } from "./canvas/MatrixTrail";
 import { useRef } from "react";
 
@@ -56,22 +56,45 @@ export function Projects({ featuredProjects, regularProjects }: ProjectsProps) {
 
   // Helper to get Gacha Rarity Colors for Podium
   const getGlowStyle = (rank: number) => {
-    if (rank === 1) return { color: "#FFD700", border: "border-[#FFD700]/50", shadow: "shadow-[0_0_40px_#FFD700]", hoverShadow: "hover:shadow-[0_0_80px_#FFD700]" }; // Mythic Gold
-    if (rank === 2) return { color: "#b829ea", border: "border-[#b829ea]/50", shadow: "shadow-[0_0_30px_#b829ea]", hoverShadow: "hover:shadow-[0_0_60px_#b829ea]" }; // Epic Purple
-    if (rank === 3) return { color: "#00e5ff", border: "border-[#00e5ff]/50", shadow: "shadow-[0_0_30px_#00e5ff]", hoverShadow: "hover:shadow-[0_0_60px_#00e5ff]" }; // Rare Blue
-    return { color: "", border: "", shadow: "", hoverShadow: "" };
+    if (rank === 1) return { 
+      color: "#FFD700", 
+      border: "border-[#FFD700]/80 dark:border-[#FFD700]/50 hover:border-[#FFD700]", 
+      shadow: "shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_0_15px_rgba(255,215,0,0.15)]",
+      stars: 5,
+      gradient: "from-background via-background/40 to-transparent dark:from-background dark:via-[#FFD700]/10",
+      hologram: "from-transparent via-white/40 to-transparent"
+    }; // Mythic Gold
+    if (rank === 2) return { 
+      color: "#b829ea", 
+      border: "border-[#b829ea]/80 dark:border-[#b829ea]/50 hover:border-[#b829ea]", 
+      shadow: "shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_0_15px_rgba(184,41,234,0.15)]",
+      stars: 4,
+      gradient: "from-background via-background/40 to-transparent dark:from-background dark:via-[#b829ea]/10",
+      hologram: "from-transparent via-white/40 to-transparent"
+    }; // Epic Purple
+    if (rank === 3) return { 
+      color: "#00e5ff", 
+      border: "border-[#00e5ff]/80 dark:border-[#00e5ff]/50 hover:border-[#00e5ff]", 
+      shadow: "shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_0_15px_rgba(0,229,255,0.15)]",
+      stars: 3,
+      gradient: "from-background via-background/40 to-transparent dark:from-background dark:via-[#00e5ff]/10",
+      hologram: "from-transparent via-white/40 to-transparent"
+    }; // Rare Blue
+    return { color: "", border: "", shadow: "", stars: 0, gradient: "", hologram: "" };
   };
 
-  // Reorder for Podium: [Rank 2 (Left), Rank 1 (Center), Rank 3 (Right)]
-  const podiumOrder = [
-    featuredProjects[1] ? { project: featuredProjects[1], rank: 2, position: 'left' } : null,
+  // Keep original order for mobile, use CSS order for Desktop Podium
+  const orderedProjects = [
     featuredProjects[0] ? { project: featuredProjects[0], rank: 1, position: 'center' } : null,
+    featuredProjects[1] ? { project: featuredProjects[1], rank: 2, position: 'left' } : null,
     featuredProjects[2] ? { project: featuredProjects[2], rank: 3, position: 'right' } : null,
   ].filter(Boolean);
 
   return (
     <section id="projects" className="relative z-10 bg-background pt-24 pb-12 overflow-hidden">
       <MatrixTrail />
+      {/* Tech Grid Background for the entire section */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
       
       {/* 1. PODIUM FEATURED SECTION */}
       {featuredProjects.length > 0 && (
@@ -84,7 +107,7 @@ export function Projects({ featuredProjects, regularProjects }: ProjectsProps) {
           </div>
 
           <div className="flex flex-col md:flex-row justify-center items-center md:items-end gap-6 md:gap-4 h-auto md:h-[500px]">
-            {podiumOrder.map((item) => {
+            {orderedProjects.map((item) => {
               if (!item) return null;
               const { project, rank, position } = item;
               const glow = getGlowStyle(rank);
@@ -92,6 +115,12 @@ export function Projects({ featuredProjects, regularProjects }: ProjectsProps) {
               const isHovered = hoveredId === project.id;
               const isOthersHovered = hoveredId !== null && hoveredId !== project.id;
               
+              // Responsive ordering
+              let orderClass = "";
+              if (position === 'center') orderClass = "order-1 md:order-2"; // Rank 1: First on mobile, Center on desktop
+              if (position === 'left') orderClass = "order-2 md:order-1";   // Rank 2: Second on mobile, Left on desktop
+              if (position === 'right') orderClass = "order-3 md:order-3";  // Rank 3: Third on mobile, Right on desktop
+
               // Base sizing
               const baseWidth = position === 'center' ? "w-full md:w-1/3 h-[300px] md:h-[450px]" : "w-full md:w-1/4 h-[250px] md:h-[350px]";
               
@@ -117,14 +146,23 @@ export function Projects({ featuredProjects, regularProjects }: ProjectsProps) {
                   onMouseEnter={() => setHoveredId(project.id)}
                   onMouseLeave={() => setHoveredId(null)}
                   className={cn(
-                    "relative cursor-pointer rounded-3xl bg-background border border-border transition-all duration-500 ease-out transform",
-                    baseWidth, scale, zIndex, opacity,
+                    "relative cursor-pointer rounded-3xl bg-card transition-all duration-500 ease-out transform group overflow-hidden border-2",
+                    orderClass, baseWidth, scale, zIndex, opacity,
                     glow.border,
                     isHovered ? glow.hoverShadow : glow.shadow
                   )}
                 >
+                  {/* Holographic Foil Animation Layer */}
+                  <div className={cn(
+                    "absolute inset-0 z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-tr translate-y-[100%] -translate-x-[100%] group-hover:translate-y-[-100%] group-hover:translate-x-[100%] ease-out",
+                    glow.hologram
+                  )} style={{ transitionDuration: '1.5s' }}></div>
+
+                  {/* Inner Gradient Vignette / Frame */}
+                  <div className={cn("absolute inset-0 z-10 pointer-events-none rounded-3xl border-[4px] opacity-20 mix-blend-overlay", glow.border)}></div>
+
                   {/* Image Background */}
-                  <div className="absolute inset-0 rounded-3xl overflow-hidden opacity-40 group-hover:opacity-70 transition-opacity duration-500">
+                  <div className="absolute inset-0 rounded-3xl overflow-hidden opacity-50 group-hover:opacity-80 transition-opacity duration-500">
                     {project.imageUrl ? (
                       <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
                     ) : (
@@ -134,15 +172,29 @@ export function Projects({ featuredProjects, regularProjects }: ProjectsProps) {
                     )}
                   </div>
 
-                  {/* Gradient Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent rounded-3xl pointer-events-none" />
+                  {/* Gradient Overlay (Gacha Colored Style) */}
+                  <div className={cn("absolute inset-0 bg-gradient-to-t rounded-3xl pointer-events-none", glow.gradient)} />
 
                   {/* Content */}
-                  <div className="absolute bottom-0 left-0 w-full p-6 flex flex-col justify-end">
-                    <span className="text-xs font-bold uppercase tracking-widest mb-1" style={{ color: glow.color }}>
-                      {rank === 1 ? "Mythic Rank" : rank === 2 ? "Epic Rank" : "Rare Rank"}
-                    </span>
-                    <h4 className="text-2xl md:text-3xl font-bold line-clamp-2">{project.title}</h4>
+                  <div className="absolute bottom-0 left-0 w-full p-6 flex flex-col justify-end z-30">
+                    <div className="flex items-center gap-3 mb-2">
+                      <span 
+                        className="text-xs font-black uppercase tracking-widest transition-all duration-500 drop-shadow-md" 
+                        style={{ 
+                          color: glow.color,
+                          textShadow: isHovered ? "0 0 10px " + glow.color : "0 0 3px " + glow.color + "40"
+                        }}
+                      >
+                        {rank === 1 ? "Mythic Rank" : rank === 2 ? "Epic Rank" : "Rare Rank"}
+                      </span>
+
+                    </div>
+                    <h4 
+                      className="text-2xl md:text-3xl font-black line-clamp-2 transition-all duration-500 text-foreground"
+                      style={{ textShadow: isHovered ? "0 0 15px " + glow.color + "80" : "none" }}
+                    >
+                      {project.title}
+                    </h4>
                   </div>
                 </div>
               );

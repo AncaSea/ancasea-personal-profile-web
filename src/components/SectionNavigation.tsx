@@ -9,7 +9,7 @@ export default function SectionNavigation() {
 
   useEffect(() => {
     // Find all sections on the page
-    const sectionElements = Array.from(document.querySelectorAll('section'))
+    const sectionElements = Array.from(document.querySelectorAll('main > section'))
     setSections(sectionElements)
 
     const handleScroll = () => {

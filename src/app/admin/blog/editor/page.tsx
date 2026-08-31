@@ -2,6 +2,7 @@
 import { useState } from "react";
 import MDEditor from '@uiw/react-md-editor';
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function AdminBlog() {
   const [title, setTitle] = useState("");
@@ -11,7 +12,7 @@ export default function AdminBlog() {
   const router = useRouter();
 
   const handleSave = async () => {
-    if (!title || !content) return alert("Title and content are required");
+    if (!title || !content) return toast.error("Title and content are required");
     
     setLoading(true);
     const res = await fetch('/api/blog', {
@@ -21,10 +22,10 @@ export default function AdminBlog() {
     });
     
     if (res.ok) {
-      alert("Published successfully!");
+      toast.success("Published successfully!");
       router.push('/blog');
     } else {
-      alert("Error saving");
+      toast.error("Error saving");
     }
     setLoading(false);
   };

@@ -1,7 +1,9 @@
 "use client";
 import { useState, Suspense } from "react";
+import { toast } from "sonner";
 import { createClient } from "@/utils/supabase/client";
 import { useSearchParams } from "next/navigation";
+import { WatcherEye } from "@/components/canvas/WatcherEye";
 
 function LoginContent() {
   const [loading, setLoading] = useState(false);
@@ -18,16 +20,18 @@ function LoginContent() {
       }
     });
     if (error) {
-      alert("Error logging in: " + error.message);
+      toast.error("Error logging in: " + error.message);
     }
     setLoading(false);
   };
 
   return (
     <main className="min-h-screen flex items-center justify-center p-4 bg-background relative overflow-hidden">
+      <WatcherEye />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/20 rounded-full blur-[100px] pointer-events-none -z-10" />
 
-      <div className="glass-panel p-12 rounded-3xl w-full max-w-md text-center relative">
+      {/* The Gate Card */}
+      <div className="glass-panel mt-32 p-12 rounded-3xl w-full max-w-md text-center relative border-t-4 border-t-[#00e5ff] shadow-[0_-10px_40px_rgba(0,229,255,0.2)]">
         <button
           onClick={() => window.location.href = '/'}
           className="text-sm font-mono text-muted-foreground hover:text-primary transition-colors absolute top-8 left-8"
@@ -35,8 +39,10 @@ function LoginContent() {
           &larr; Back to Home
         </button>
 
-        <h1 className="text-3xl font-black mb-2 tracking-tighter mt-12">Admin Portal</h1>
-        <p className="text-muted-foreground mb-8">Authorized Personnel Only</p>
+        <div className="w-12 h-1 bg-[#00e5ff] mx-auto mb-8 rounded-full shadow-[0_0_10px_#00e5ff]" />
+        
+        <h1 className="text-3xl font-black mb-2 tracking-tighter uppercase tracking-widest text-[#00e5ff]">System Gate</h1>
+        <p className="text-muted-foreground mb-8 font-mono text-xs">AWAITING AUTHORIZATION...</p>
         
         {error && (
           <div className="bg-red-500/10 border border-red-500/50 text-red-500 p-4 rounded-xl mb-8 text-sm font-bold">

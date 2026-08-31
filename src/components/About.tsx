@@ -39,7 +39,7 @@ export function About({ experiences, education, skills }: AboutProps) {
   }, []);
 
   return (
-    <section ref={containerRef} className="py-24 px-4 min-h-screen bg-background/50 backdrop-blur-sm relative z-10 overflow-hidden">
+    <section id="about" ref={containerRef} className="py-24 px-4 min-h-screen bg-background/50 backdrop-blur-sm relative z-10 overflow-hidden">
       {/* Canvas Effect */}
       <GridDistortion />
 

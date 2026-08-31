@@ -2,6 +2,7 @@
 import { Hero } from "@/components/Hero";
 import { About } from "@/components/About";
 import { Projects } from "@/components/Projects";
+import { FloatingNav } from "@/components/FloatingNav";
 import { prisma } from "@/utils/prisma";
 import type { Metadata } from "next";
 
@@ -29,8 +30,8 @@ export default async function Home() {
     prisma.experience.findMany({ orderBy: { startDate: "desc" } }),
     prisma.education.findMany({ orderBy: { year: "desc" } }),
     prisma.skill.findMany(),
-    prisma.project.findMany({ where: { isFeatured: true }, orderBy: { createdAt: "desc" }, take: 3 }),
-    prisma.project.findMany({ orderBy: { createdAt: "desc" }, take: 6 })
+    prisma.project.findMany({ where: { isFeatured: true }, orderBy: { featuredOrder: "asc" }, take: 3 }),
+    prisma.project.findMany({ orderBy: { order: "asc" }, take: 6 })
   ]);
 
   return (
@@ -45,6 +46,7 @@ export default async function Home() {
       
 
       
+      <FloatingNav />
     </main>
   );
 }
