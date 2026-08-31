@@ -18,8 +18,51 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Personal Profile",
-  description: "Modern Parallax Portfolio",
+  title: {
+    default: "Ancasea - Fullstack Developer",
+    template: "%s | Ancasea"
+  },
+  description: "Personal portfolio of Ancasea, showcasing modern web development, projects, and technical skills using Next.js, React, and TypeScript.",
+  keywords: ["Ancasea", "Fullstack Developer", "Web Developer", "Next.js Portfolio", "React Developer", "Software Engineer", "Indonesia"],
+  authors: [{ name: "Ancasea" }],
+  creator: "Ancasea",
+  openGraph: {
+    type: "website",
+    locale: "id_ID",
+    url: "https://ancasea.com", // Replace with real domain later
+    title: "Ancasea - Fullstack Developer",
+    description: "Personal portfolio of Ancasea, showcasing modern web development, projects, and technical skills.",
+    siteName: "Ancasea Portfolio",
+    images: [
+      {
+        url: "/og-image.png", // Add an actual image to public/og-image.png later
+        width: 1200,
+        height: 630,
+        alt: "Ancasea Portfolio Presentation",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Ancasea - Fullstack Developer",
+    description: "Personal portfolio of Ancasea, showcasing modern web development, projects, and technical skills.",
+    images: ["/og-image.png"],
+    creator: "@ancasea", // Replace if you have a twitter handle
+  },
+  verification: {
+    google: "YOUR_GOOGLE_SEARCH_CONSOLE_VERIFICATION_CODE", // Replace this with the real code from GSC
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
 };
 
 export default function RootLayout({

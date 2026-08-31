@@ -34,8 +34,23 @@ export default async function Home() {
     prisma.project.findMany({ orderBy: { order: "asc" }, take: 6 })
   ]);
 
+
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: profile?.name || 'Creative Developer',
+    jobTitle: profile?.tagline || 'Building Digital Experiences',
+    description: profile?.bio || 'Portfolio',
+    url: process.env.NEXT_PUBLIC_BASE_URL || 'https://ancasea.com',
+    sameAs: [
+      'https://github.com/ancasea',
+      'https://linkedin.com/in/ancasea'
+    ]
+  };
+
   return (
     <main className="relative min-h-screen overflow-hidden">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       
       <Hero profile={profile} />
       <About experiences={experiences} education={education} skills={skills} />
