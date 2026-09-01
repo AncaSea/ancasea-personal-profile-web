@@ -11,10 +11,10 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     },
   });
 
-  const blogEntries: MetadataRoute.Sitemap = blogs.map((blog) => ({
-    url: ${"${baseUrl}/blog/"},
+  const blogEntries = blogs.map((blog) => ({
+    url: `${baseUrl}/blog/${blog.slug}`,
     lastModified: blog.updatedAt,
-    changeFrequency: 'weekly',
+    changeFrequency: 'weekly' as const,
     priority: 0.7,
   }));
 
@@ -22,7 +22,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: 'monthly',
+      changeFrequency: 'monthly' as const,
       priority: 1,
     },
     ...blogEntries,
