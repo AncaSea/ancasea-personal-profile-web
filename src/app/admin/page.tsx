@@ -1,6 +1,6 @@
 import { prisma } from "@/utils/prisma";
 import { AiChart } from "@/components/AiChart";
-import { Briefcase, GraduationCap, Code, FolderGit2, BookOpen, User } from "lucide-react";
+import { Briefcase, GraduationCap, Code, FolderGit2, BookOpen, User, Globe, Search, Activity, CheckCircle2, ExternalLink } from "lucide-react";
 import Link from "next/link";
 
 export default async function AdminDashboard() {
@@ -79,6 +79,68 @@ export default async function AdminDashboard() {
           <AiChart logs={aiLogs} />
         </div>
       </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        {/* SEO Control Center */}
+        <div className="bg-card/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-xl relative overflow-hidden group">
+          <div className="absolute top-[-20%] right-[-10%] w-[40%] h-[50%] rounded-full bg-emerald-500/10 blur-[80px] pointer-events-none z-0 group-hover:bg-emerald-400/20 transition-colors duration-1000" />
+          
+          <div className="relative z-10 flex items-center gap-3 mb-6">
+            <div className="p-3 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+              <Globe size={24} />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black font-sans bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 to-teal-500">SEO Control Center</h2>
+              <p className="text-muted-foreground text-sm font-medium">Search Engine Visibility Status</p>
+            </div>
+          </div>
+
+          <div className="space-y-4 relative z-10">
+            {/* Health Checks */}
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+              <div className="flex items-center gap-3">
+                <Search size={18} className="text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-bold text-foreground">Sitemap & Robots</p>
+                  <p className="text-xs text-muted-foreground">sitemap.xml & robots.txt generated</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full text-xs font-bold border border-emerald-500/20">
+                <CheckCircle2 size={14} /> Healthy
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+              <div className="flex items-center gap-3">
+                <Activity size={18} className="text-muted-foreground" />
+                <div>
+                  <p className="text-sm font-bold text-foreground">Schema Markup</p>
+                  <p className="text-xs text-muted-foreground">JSON-LD Person active</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-1.5 text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-full text-xs font-bold border border-emerald-500/20">
+                <CheckCircle2 size={14} /> Active
+              </div>
+            </div>
+            
+            {/* Quick Links */}
+            <div className="pt-2 flex gap-3">
+              <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 hover:shadow-[0_0_15px_rgba(59,130,246,0.2)] border border-blue-500/20 transition-all text-sm font-bold">
+                Search Console <ExternalLink size={14} />
+              </a>
+              <a href="https://analytics.google.com/" target="_blank" rel="noopener noreferrer" className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-orange-500/10 text-orange-400 hover:bg-orange-500/20 hover:shadow-[0_0_15px_rgba(249,115,22,0.2)] border border-orange-500/20 transition-all text-sm font-bold">
+                Analytics <ExternalLink size={14} />
+              </a>
+            </div>
+          </div>
+        </div>
+
+        {/* Empty slot for future expansion */}
+        <div className="bg-card/20 backdrop-blur-md border border-white/5 rounded-3xl p-8 flex items-center justify-center relative overflow-hidden group border-dashed">
+           <p className="text-muted-foreground/50 text-sm font-medium">Future Analytics Expansion</p>
+        </div>
+      </div>
+
     </div>
   );
 }
