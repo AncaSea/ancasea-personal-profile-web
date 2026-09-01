@@ -149,7 +149,7 @@ export function Projects({ featuredProjects, regularProjects }: ProjectsProps) {
                     "relative cursor-pointer rounded-3xl bg-card transition-all duration-500 ease-out transform group overflow-hidden border-2",
                     orderClass, baseWidth, scale, zIndex, opacity,
                     glow.border,
-                    isHovered ? glow.hoverShadow : glow.shadow
+                    glow.shadow
                   )}
                 >
                   {/* Holographic Foil Animation Layer */}
