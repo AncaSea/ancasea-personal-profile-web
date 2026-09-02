@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import type { ProfileInfo } from "@prisma/client";
@@ -13,6 +14,14 @@ export function Hero({ profile }: { profile: ProfileInfo | null }) {
   const textRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
   const [clickCount, setClickCount] = useState(0);
+  const router = useRouter();
+
+  useEffect(() => {
+    if (clickCount >= 3) {
+      router.push("/admin");
+      setClickCount(0);
+    }
+  }, [clickCount, router]);
 
   useEffect(() => {
     const ctx = gsap.context(() => {

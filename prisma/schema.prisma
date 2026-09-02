@@ -81,3 +81,27 @@ model SystemLog {
   context   String?  // JSON stringified context or stack trace
   createdAt DateTime @default(now())
 }
+model Guestbook {
+  id        String   @id @default(uuid())
+  email     String
+  name      String
+  avatarUrl String?
+  message   String   @db.Text
+  createdAt DateTime @default(now())
+}
+
+model AiRateLimit {
+  id        String   @id @default(uuid())
+  ip        String
+  createdAt DateTime @default(now())
+}
+
+model Visitor {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  avatarUrl String?
+  loginCount Int     @default(1)
+  lastLogin DateTime @default(now())
+  createdAt DateTime @default(now())
+}

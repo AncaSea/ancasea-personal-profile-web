@@ -14,6 +14,13 @@ export default async function AdminLayout({
     redirect('/login')
   }
 
+  // Phase 1: Security & RBAC. Only the owner can access the admin panel.
+  const adminEmail = process.env.ADMIN_EMAIL || 'rekaasae255@gmail.com'
+  if (user.email?.toLowerCase() !== adminEmail.toLowerCase()) {
+    // If a normal user (from Guestbook) tries to access Admin, kick them to home page
+    redirect('/?error=admin_access_denied')
+  }
+
   return (
     <div className="flex h-screen overflow-hidden bg-background relative selection:bg-primary/30">
       {/* Mesh Gradient Background: Space (Purple) + Ocean (Teal) + Sky (Blue) */}

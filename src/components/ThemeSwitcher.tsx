@@ -66,8 +66,8 @@ export function ThemeSwitcher() {
   const currentThemeName = themeNames[displayState] || "Loading...";
 
   return (
-    <div className="fixed bottom-4 right-4 z-50 group flex flex-col items-center">
-      <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-md bg-popover/80 backdrop-blur-md text-popover-foreground text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap border border-border shadow-lg">
+    <div className="fixed bottom-6 left-6 z-50 group flex flex-col items-center">
+      <div className="absolute left-full ml-3 top-1/2 -translate-y-1/2 px-3 py-1.5 rounded-md bg-popover/80 backdrop-blur-md text-popover-foreground text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap border border-border shadow-lg">
         {currentThemeName}
       </div>
       <Button variant="outline" size="icon" onClick={cycleTheme} className="rounded-full shadow-lg backdrop-blur-md border-primary/20">

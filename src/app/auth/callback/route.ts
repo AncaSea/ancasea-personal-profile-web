@@ -10,9 +10,7 @@ export async function GET(request: Request) {
   const protocol = request.headers.get('x-forwarded-proto') || 'https'
   
   let baseUrl = requestUrl.origin
-  if (process.env.NEXT_PUBLIC_BASE_URL) {
-    baseUrl = process.env.NEXT_PUBLIC_BASE_URL
-  } else if (forwardedHost) {
+  if (forwardedHost) {
     baseUrl = `${protocol}://${forwardedHost}`
   }
   
@@ -27,14 +25,41 @@ export async function GET(request: Request) {
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/admin'
 
-  if (code) {
+    if (code) {
     const supabase = await createClient()
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
     
-    if (!error) {
-      return NextResponse.redirect(`${baseUrl}${next}`)
+    if (!error && data?.user) {
+      // Record visitor in DB
+      try {
+        const { prisma } = await import('@/utils/prisma');
+        const email = data.user.email || '';
+        const name = data.user.user_metadata?.full_name || data.user.user_metadata?.name || email.split('@')[0];
+        const avatarUrl = data.user.user_metadata?.avatar_url || '';
+        
+        if (email) {
+          await prisma.visitor.upsert({
+            where: { email },
+            update: {
+              loginCount: { increment: 1 },
+              lastLogin: new Date(),
+              name,
+              avatarUrl
+            },
+            create: {
+              email,
+              name,
+              avatarUrl
+            }
+          });
+        }
+      } catch (err) {
+        console.error('Failed to log visitor:', err);
+      }
+
+      return NextResponse.redirect(new URL(next, baseUrl).toString())
     } else {
-      return NextResponse.redirect(`${baseUrl}/login?error=${encodeURIComponent(error.message)}`)
+      return NextResponse.redirect(new URL(`/login?error=${encodeURIComponent(error?.message || 'Auth_Failed')}`, baseUrl).toString())
     }
   }
 

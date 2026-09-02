@@ -6,6 +6,7 @@ import { Toaster } from "sonner";
 import SmoothScroll from "@/components/SmoothScroll";
 import SectionNavigation from "@/components/SectionNavigation";
 import { ThemeSwitcher } from "@/components/ThemeSwitcher";
+import { AiAssistant } from "@/components/AiAssistant";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -18,6 +19,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_BASE_URL || "https://ancasea.com"),
   title: {
     default: "Ancasea - Fullstack Developer",
     template: "%s | Ancasea"
@@ -98,6 +100,7 @@ export default function RootLayout({
             {children}
             <SectionNavigation />
             <ThemeSwitcher />
+            <AiAssistant />
           <Toaster theme="system" duration={8000} richColors />
           </SmoothScroll>
         </ThemeProvider>

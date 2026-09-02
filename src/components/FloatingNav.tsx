@@ -6,6 +6,8 @@ const sections = [
   { id: "hero", label: "Hero" },
   { id: "about", label: "About" },
   { id: "projects", label: "Projects" },
+  { id: "contact", label: "Contact" },
+  { id: "guestbook", label: "Guestbook" },
 ];
 
 export function FloatingNav() {

@@ -1,7 +1,7 @@
 "use client";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FileText, LayoutDashboard, LogOut, BookOpen, Briefcase, ScrollText, Eye } from 'lucide-react';
+import { FileText, LayoutDashboard, LogOut, BookOpen, Briefcase, ScrollText, Eye, MessageSquare, ShieldAlert, Users } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function AdminSidebar({ email }: { email: string | undefined }) {
@@ -13,6 +13,9 @@ export function AdminSidebar({ email }: { email: string | undefined }) {
     { href: '/admin/cv', label: 'Import CV', icon: FileText },
     { href: '/admin/blog', label: 'Manage Blogs', icon: BookOpen },
     { href: '/admin/logs', label: 'System Logs', icon: ScrollText },
+    { href: '/admin/guestbook', label: 'Guestbook Logs', icon: MessageSquare },
+    { href: '/admin/visitors', label: 'Visitors Info', icon: Users },
+    { href: '/admin/ai-rate-limits', label: 'AI Monitor', icon: ShieldAlert },
     { href: '/admin/preview', label: 'Preview Website', icon: Eye },
   ];
 
