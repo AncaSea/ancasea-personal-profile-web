@@ -4,6 +4,7 @@
 
 @custom-variant futuristic (&:is(.theme-futuristic *));
 @custom-variant glass (&:is(.theme-glass *));
+@custom-variant dark (&:is(.theme-futuristic *, .theme-glass *));
 
 @theme inline {
   --color-background: var(--background);

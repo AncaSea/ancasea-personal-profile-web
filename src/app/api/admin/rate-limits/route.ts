@@ -25,9 +25,11 @@ export async function GET() {
 export async function DELETE(req: Request) {
   if (!(await checkAdmin())) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   try {
-    const { id, clearAll } = await req.json();
+    const { id, clearAll, ip } = await req.json();
     if (clearAll) {
       await prisma.aiRateLimit.deleteMany();
+    } else if (ip) {
+      await prisma.aiRateLimit.deleteMany({ where: { ip } });
     } else if (id) {
       await prisma.aiRateLimit.delete({ where: { id } });
     } else {

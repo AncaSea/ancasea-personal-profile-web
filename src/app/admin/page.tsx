@@ -1,4 +1,5 @@
 import { prisma } from "@/utils/prisma";
+import { GatewayLogModal } from "./GatewayLogModal";
 import { AiChart } from "@/components/AiChart";
 import { Briefcase, GraduationCap, Code, FolderGit2, BookOpen, User, Globe, Search, Activity, CheckCircle2, ExternalLink } from "lucide-react";
 import Link from "next/link";
@@ -135,9 +136,46 @@ export default async function AdminDashboard() {
           </div>
         </div>
 
-        {/* Empty slot for future expansion */}
-        <div className="bg-card/20 backdrop-blur-md border border-white/5 rounded-3xl p-8 flex items-center justify-center relative overflow-hidden group border-dashed">
-           <p className="text-muted-foreground/50 text-sm font-medium">Future Analytics Expansion</p>
+                {/* Recent AI Gateway Logs */}
+        <div className="bg-card/40 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-xl relative overflow-hidden group">
+          <div className="absolute top-[-20%] right-[-10%] w-[40%] h-[50%] rounded-full bg-blue-500/10 blur-[80px] pointer-events-none z-0 group-hover:bg-blue-400/20 transition-colors duration-1000" />
+          
+          <div className="relative z-10 flex items-center gap-3 mb-6">
+            <div className="p-3 rounded-xl bg-blue-500/10 text-blue-400 border border-blue-500/20">
+              <Activity size={24} />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black font-sans bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">Recent Gateway Logs</h2>
+              <p className="text-muted-foreground text-sm font-medium">Latest token usage by source</p>
+            </div>
+          </div>
+
+          <div className="space-y-3 relative z-10 max-h-[220px] overflow-y-auto custom-scrollbar pr-2">
+            {aiLogs.slice(0, 5).map((log, idx) => (
+              <div key={idx} className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                <div>
+                  <p className="text-sm font-bold text-foreground flex items-center gap-2">
+                    {log.action}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    {new Date(log.createdAt).toLocaleDateString()} {new Date(log.createdAt).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}
+                  </p>
+                </div>
+                <div className="flex items-center gap-1">
+                  <div className="flex flex-col items-end mr-2">
+                    <span className="text-xs font-mono text-muted-foreground">Tokens</span>
+                    <span className="text-sm font-black text-cyan-400 drop-shadow-sm">
+                      {log.totalTokenCount.toLocaleString()}
+                    </span>
+                  </div>
+                  <GatewayLogModal log={log as any} />
+                </div>
+              </div>
+            ))}
+            {aiLogs.length === 0 && (
+              <div className="text-center py-6 text-muted-foreground text-sm">No gateway logs yet.</div>
+            )}
+          </div>
         </div>
       </div>
 
