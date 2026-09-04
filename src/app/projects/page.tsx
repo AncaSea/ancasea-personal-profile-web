@@ -1,6 +1,6 @@
 import { prisma } from "@/utils/prisma";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Star } from "lucide-react";
 
 export const revalidate = 3600;
 

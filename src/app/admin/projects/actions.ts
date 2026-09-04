@@ -85,7 +85,7 @@ export async function syncGithubProjects() {
     const repos = await res.json();
     
     // Sort by stars descending to easily pick top 3
-    repos.sort((a, b) => b.stargazers_count - a.stargazers_count);
+    repos.sort((a: any, b: any) => b.stargazers_count - a.stargazers_count);
 
     let syncedCount = 0;
 
@@ -100,7 +100,7 @@ export async function syncGithubProjects() {
       const link = repo.html_url;
       const language = repo.language;
       const stars = repo.stargazers_count;
-      const techStack = repo.topics ? JSON.stringify(repo.topics) : (language ? JSON.stringify([language]) : null);
+      const techStack = repo.topics && repo.topics.length > 0 ? repo.topics : (language ? [language] : []);
 
       // Check if cover.png or cover.jpg exists
       const coverPngUrl = `https://raw.githubusercontent.com/AncaSea/${repo.name}/main/cover.png`;
@@ -136,7 +136,7 @@ export async function syncGithubProjects() {
             link,
             language,
             stars,
-            techStack: existingProject.techStack ? existingProject.techStack : techStack,
+            techStack: (existingProject.techStack ? existingProject.techStack : techStack) as any,
             imageUrl: existingProject.imageUrl ? existingProject.imageUrl : imageUrl,
           }
         });
@@ -150,7 +150,7 @@ export async function syncGithubProjects() {
             link,
             language,
             stars,
-            techStack,
+            techStack: techStack as any,
             imageUrl,
             isFeatured: i < 3, // Auto feature top 3 stars initially
             order: syncedCount,

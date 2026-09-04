@@ -9,7 +9,12 @@ A futuristic, high-performance personal portfolio website built with modern web 
 - **Secure Authentication**: Powered by Supabase Google OAuth with strict sign-up blocking (only authorized Google accounts can enter).
 - **AI CV Extractor**: Upload a PDF CV/Resume, and **Gemini 1.5 Flash AI** will automatically parse and populate your Experiences, Skills, Educations, and Projects directly into the database.
 - **Markdown Blog Engine**: Built-in markdown editor to write, draft, and publish articles seamlessly.
-- **AI Analytics**: Beautiful Recharts-powered dashboard to monitor Gemini API token usage over time.
+- **AI Analytics**: Dasbor *monitoring* interaktif untuk memantau penggunaan token API Gemini dari waktu ke waktu.
+- **AI Chat Assistant (Ask Me Anything)**: Pengunjung web bisa ngobrol dengan asisten AI pintar yang sudah dilatih dengan datamu.
+- **GitHub Hybrid Sync**: Pamerkan proyek (portofolio) langsung dari repositori GitHub-mu. Bintang (stars) dan bahasa pemrograman akan tersinkron otomatis, namun kamu tetap bisa mengatur urutan dan kover secara manual.
+- **Buku Tamu & Lacak Pengunjung (Guestbook & Visitor Analytics)**: Ketahui siapa saja yang datang ke webmu dan biarkan mereka meninggalkan pesan.
+- **Sistem Keamanan Pintar (Rate Limiting & RLS)**: Mencegah spam pesan AI dengan *Rate Limiting* berbasis IP, serta perlindungan akses data mutlak dengan Row Level Security di database.
+- **AI Gateway terpusat**: Jika limit AI habis atau terjadi eror, sistem akan memberikan penanganan halus (*graceful fallback*) yang mengarahkan pengunjung untuk menghubungi langsung via Telegram.
 
 ## 🛠️ Tech Stack
 
