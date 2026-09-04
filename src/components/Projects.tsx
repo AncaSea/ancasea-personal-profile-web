@@ -177,7 +177,7 @@ export function Projects({ featuredProjects, regularProjects }: ProjectsProps) {
 
                   {/* Content */}
                   <div className="absolute bottom-0 left-0 w-full p-6 flex flex-col justify-end z-30">
-                    <div className="flex items-center gap-3 mb-2">
+                    <div className="flex flex-wrap items-center gap-3 mb-2">
                       <span 
                         className="text-xs font-black uppercase tracking-widest transition-all duration-500 drop-shadow-md" 
                         style={{ 
@@ -187,7 +187,17 @@ export function Projects({ featuredProjects, regularProjects }: ProjectsProps) {
                       >
                         {rank === 1 ? "Mythic Rank" : rank === 2 ? "Epic Rank" : "Rare Rank"}
                       </span>
-
+                      {project.language && (
+                        <span className="text-[10px] font-mono bg-background/50 backdrop-blur-md px-2 py-0.5 rounded-sm border border-white/10 text-white shadow-sm">
+                          {project.language}
+                        </span>
+                      )}
+                      {project.stars !== undefined && project.stars > 0 && (
+                        <span className="flex items-center gap-1 text-[10px] bg-yellow-500/20 backdrop-blur-md text-yellow-300 px-2 py-0.5 rounded-sm border border-yellow-500/30">
+                          <Star className="w-3 h-3 fill-yellow-500" />
+                          {project.stars}
+                        </span>
+                      )}
                     </div>
                     <h4 
                       className="text-2xl md:text-3xl font-black line-clamp-2 transition-all duration-500 text-foreground"
@@ -229,7 +239,22 @@ export function Projects({ featuredProjects, regularProjects }: ProjectsProps) {
             </div>
             
             <div className="w-full md:w-1/2 p-8 overflow-y-auto flex flex-col">
-              <h3 className="text-3xl font-black mb-4">{activeProject.title}</h3>
+              <div className="flex items-center flex-wrap gap-4 mb-4">
+                  <h3 className="text-3xl font-black">{activeProject.title}</h3>
+                  <div className="flex items-center gap-2">
+                    {activeProject.language && (
+                      <span className="text-xs font-mono bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20">
+                        {activeProject.language}
+                      </span>
+                    )}
+                    {activeProject.stars !== undefined && (
+                      <span className="flex items-center gap-1 text-sm bg-yellow-500/10 text-yellow-500 font-bold px-3 py-1 rounded-full border border-yellow-500/20">
+                        <Star className="w-4 h-4 fill-yellow-500" />
+                        {activeProject.stars}
+                      </span>
+                    )}
+                  </div>
+                </div>
               <p className="text-muted-foreground mb-8 leading-relaxed">
                 {activeProject.description}
               </p>
@@ -285,7 +310,22 @@ export function Projects({ featuredProjects, regularProjects }: ProjectsProps) {
 
             return (
               <TiltCard key={project.id} onClick={() => setActiveProject(project)}>
-                <h4 className="text-2xl font-bold mb-3">{project.title}</h4>
+                <div className="flex items-start justify-between gap-4 mb-3">
+                  <h4 className="text-2xl font-bold line-clamp-1">{project.title}</h4>
+                  <div className="flex items-center gap-2 shrink-0 mt-1">
+                    {project.language && (
+                      <span className="text-[10px] font-mono bg-primary/10 text-primary px-2 py-0.5 rounded-md border border-primary/20">
+                        {project.language}
+                      </span>
+                    )}
+                    {project.stars !== undefined && project.stars > 0 && (
+                      <span className="flex items-center gap-1 text-[10px] bg-yellow-500/10 text-yellow-500 font-bold px-2 py-0.5 rounded-md border border-yellow-500/20">
+                        <Star className="w-3 h-3 fill-yellow-500" />
+                        {project.stars}
+                      </span>
+                    )}
+                  </div>
+                </div>
                 <p className="text-muted-foreground mb-6 line-clamp-3">
                   {project.description}
                 </p>

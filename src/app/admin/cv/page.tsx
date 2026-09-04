@@ -52,13 +52,13 @@ export default function CVImportPage() {
     <div className="space-y-6 max-w-3xl">
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Import Data via AI</h1>
-        <p className="text-muted-foreground mt-2">Upload your CV and Portfolio (PDFs). Our AI will intelligently extract experiences, education, skills, and projects.</p>
+        <p className="text-muted-foreground mt-2">Unggah CV (PDF). AI kami akan otomatis mengekstrak profile, pengalaman, pendidikan, dan keahlianmu. (Catatan: Proyek portofolio kini tersinkronisasi via GitHub).</p>
       </div>
 
       <Card>
         <CardHeader>
           <CardTitle>Upload PDFs</CardTitle>
-          <CardDescription>Select one or multiple PDF files (e.g. CV.pdf and Portfolio.pdf).</CardDescription>
+          <CardDescription>Pilih file PDF CV kamu.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleUpload} className="space-y-4">

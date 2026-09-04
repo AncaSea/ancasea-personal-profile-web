@@ -14,7 +14,7 @@ export default async function AdminProjectsPage() {
         <h1 className="text-3xl font-bold font-mono text-primary">Manage Projects</h1>
       </div>
       <p className="text-muted-foreground">
-        Toggle which projects should be featured on your landing page. You can also assign images to them since CV parsing only extracts text.
+        Atur urutan proyek, unggah kover, dan tentukan fitur Featured. Data proyek ditarik secara otomatis dari repositori GitHub-mu.
       </p>
       
       <ProjectList initialProjects={projects} />

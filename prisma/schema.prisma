@@ -43,10 +43,13 @@ model Skill {
 
 model Project {
   id          String   @id @default(uuid())
+  githubId    Int?     @unique
   title       String
   description String?  @db.Text
   imageUrl    String?
   techStack   Json?
+  language    String?
+  stars       Int      @default(0)
   link        String?
   isFeatured  Boolean  @default(false)
   order       Int      @default(0)

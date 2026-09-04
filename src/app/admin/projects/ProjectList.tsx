@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import type { Project } from "@prisma/client";
-import { toggleFeaturedProject, updateProjectImage, updateProjectsOrder, updateFeaturedProjectsOrder } from "./actions";
+import { toggleFeaturedProject, updateProjectImage, updateProjectsOrder, updateFeaturedProjectsOrder, syncGithubProjects } from "./actions";
+import { RefreshCw, Star } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { logSystemEvent } from "../logs/actions";
@@ -17,10 +18,31 @@ export function ProjectList({ initialProjects }: { initialProjects: ProjectWithO
   const [uploadingId, setUploadingId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isReordering, setIsReordering] = useState(false);
+  const [isSyncing, setIsSyncing] = useState(false);
   const supabase = createClient();
 
   const featuredProjects = projects.filter(p => p.isFeatured).sort((a, b) => a.featuredOrder - b.featuredOrder);
   const allProjects = [...projects].sort((a, b) => a.order - b.order);
+
+  
+  const handleSync = async () => {
+    setIsSyncing(true);
+    const toastId = toast.loading("Syncing with GitHub...");
+    try {
+      const res = await syncGithubProjects();
+      if (res.success) {
+        toast.success(`Berhasil sinkronisasi ${res.count} proyek dari GitHub!`, { id: toastId });
+        // Optional: you can refresh the page to get new data
+        window.location.reload();
+      } else {
+        toast.error("Gagal sinkronisasi dengan GitHub", { id: toastId });
+      }
+    } catch (e) {
+      toast.error("Terjadi kesalahan", { id: toastId });
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const handleToggle = async (id: string, currentStatus: boolean) => {
     const newStatus = !currentStatus;
@@ -171,11 +193,21 @@ export function ProjectList({ initialProjects }: { initialProjects: ProjectWithO
 
       {/* ALL PROJECTS CARD */}
       <div className="bg-card border border-border rounded-xl overflow-hidden shadow-sm">
-        <div className="bg-muted/50 p-6 border-b border-border">
-          <h2 className="text-xl font-bold">All Projects Archive</h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Atur urutan semua proyek, upload gambar, dan tentukan mana yang ingin dijadikan Featured.
-          </p>
+        <div className="bg-muted/50 p-6 border-b border-border flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div>
+            <h2 className="text-xl font-bold">All Projects Archive</h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              Atur urutan semua proyek, upload gambar, dan tentukan mana yang ingin dijadikan Featured.
+            </p>
+          </div>
+          <button
+            onClick={handleSync}
+            disabled={isSyncing}
+            className="flex items-center gap-2 bg-primary text-primary-foreground px-4 py-2 rounded-lg font-bold hover:bg-primary/90 transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-5 h-5 ${isSyncing ? 'animate-spin' : ''}`} />
+            {isSyncing ? 'Syncing...' : 'Sync GitHub'}
+          </button>
         </div>
         <div className="p-6 space-y-4">
           {allProjects.map((project, index) => (
@@ -206,7 +238,20 @@ export function ProjectList({ initialProjects }: { initialProjects: ProjectWithO
                   </div>
                 )}
                 <div>
-                  <h3 className="font-bold text-lg">{project.title}</h3>
+                  <h3 className="font-bold text-lg flex items-center gap-2">
+                    {project.title}
+                    {project.language && (
+                      <span className="text-xs font-mono bg-primary/10 text-primary px-2 py-0.5 rounded-full border border-primary/20">
+                        {project.language}
+                      </span>
+                    )}
+                    {project.stars !== undefined && (
+                      <span className="flex items-center gap-1 text-xs text-yellow-500 font-bold bg-yellow-500/10 px-2 py-0.5 rounded-full border border-yellow-500/20">
+                        <Star className="w-3 h-3 fill-yellow-500" />
+                        {project.stars}
+                      </span>
+                    )}
+                  </h3>
                   <p className="text-sm text-muted-foreground line-clamp-1 max-w-md">{project.description}</p>
                 </div>
               </div>

@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     const ai = getGenAI();
     const prompt = `
       You are an expert HR data extractor. I will provide you with the text from one or more documents (like a CV and a Portfolio).
-      Extract all experiences, educations, skills, and projects into a valid JSON object.
+      Extract all experiences, educations, and skills into a valid JSON object.
       Do NOT include markdown formatting like \`\`\`json. Just return raw JSON.
       
       Format:
@@ -75,9 +75,6 @@ export async function POST(request: Request) {
         ],
         "skills": [
           { "name": "Skill Name", "category": "Frontend/Backend/etc" }
-        ],
-        "projects": [
-          { "title": "Project Name", "description": "Project Description", "techStack": ["React", "Node", "etc"], "link": "url if available" }
         ]
       }
 
@@ -117,7 +114,7 @@ export async function POST(request: Request) {
     await prisma.experience.deleteMany({});
     await prisma.education.deleteMany({});
     await prisma.skill.deleteMany({});
-    await prisma.project.deleteMany({});
+    // await prisma.project.deleteMany({}); // Disabled to prevent wiping GitHub synced projects
 
     if (parsedData.profile) {
       await prisma.profileInfo.create({ data: parsedData.profile });
@@ -131,10 +128,7 @@ export async function POST(request: Request) {
     if (parsedData.skills && parsedData.skills.length > 0) {
       await prisma.skill.createMany({ data: parsedData.skills });
     }
-    if (parsedData.projects && parsedData.projects.length > 0) {
-      // Prisma expects techStack as Json, arrays are fine.
-      await prisma.project.createMany({ data: parsedData.projects });
-    }
+    
 
     return NextResponse.json({
       success: true,
@@ -142,7 +136,7 @@ export async function POST(request: Request) {
         experiences: parsedData.experiences?.length || 0,
         education: parsedData.education?.length || 0,
         skills: parsedData.skills?.length || 0,
-        projects: parsedData.projects?.length || 0,
+        
       }
     })
     

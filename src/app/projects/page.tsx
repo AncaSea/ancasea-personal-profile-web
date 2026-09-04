@@ -50,7 +50,22 @@ export default async function AllProjectsPage() {
                    )}
                 </div>
                 
-                <h4 className="text-2xl font-bold mb-3">{project.title}</h4>
+                <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
+                    <h4 className="text-2xl font-bold">{project.title}</h4>
+                    <div className="flex items-center gap-2">
+                      {project.language && (
+                        <span className="text-[10px] font-mono bg-primary/10 text-primary px-2 py-0.5 rounded-md border border-primary/20">
+                          {project.language}
+                        </span>
+                      )}
+                      {project.stars !== undefined && project.stars > 0 && (
+                        <span className="flex items-center gap-1 text-[10px] bg-yellow-500/10 text-yellow-500 font-bold px-2 py-0.5 rounded-md border border-yellow-500/20">
+                          <Star className="w-3 h-3 fill-yellow-500" />
+                          {project.stars}
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 <p className="text-muted-foreground mb-6 line-clamp-3">
                   {project.description}
                 </p>
