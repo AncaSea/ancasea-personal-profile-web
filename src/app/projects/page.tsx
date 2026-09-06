@@ -6,6 +6,7 @@ export const revalidate = 3600;
 
 export default async function AllProjectsPage() {
   const projects = await prisma.project.findMany({
+    where: { isVisible: true },
     orderBy: { createdAt: "desc" }
   });
 
@@ -20,7 +21,8 @@ export default async function AllProjectsPage() {
             All <span className="text-primary">Projects</span>
           </h1>
           <p className="text-xl text-muted-foreground mt-4 max-w-2xl">
-            A complete archive of everything I've built, experimented with, and launched.
+            A complete archive of everything I've built, experimented with, and launched. 
+            All of these projects are automatically synced from my <a href="https://github.com/AncaSea" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline font-medium">GitHub @AncaSea</a>.
           </p>
         </div>
         
@@ -67,7 +69,7 @@ export default async function AllProjectsPage() {
                     </div>
                   </div>
                 <p className="text-muted-foreground mb-6 line-clamp-3">
-                  {project.description}
+                  {project.description || "Belum ada deskripsi yang ditambahkan pada repositori ini."}
                 </p>
                 
                 <div className="flex flex-wrap gap-2 mb-6">

@@ -256,7 +256,7 @@ export function Projects({ featuredProjects, regularProjects }: ProjectsProps) {
                   </div>
                 </div>
               <p className="text-muted-foreground mb-8 leading-relaxed">
-                {activeProject.description}
+                {activeProject.description || "Belum ada deskripsi yang ditambahkan pada repositori ini."}
               </p>
               
               <div className="mb-8">
@@ -327,7 +327,7 @@ export function Projects({ featuredProjects, regularProjects }: ProjectsProps) {
                   </div>
                 </div>
                 <p className="text-muted-foreground mb-6 line-clamp-3">
-                  {project.description}
+                  {project.description || "Belum ada deskripsi yang ditambahkan pada repositori ini."}
                 </p>
                 
                 <div className="flex flex-wrap gap-2 mb-6 mt-auto">

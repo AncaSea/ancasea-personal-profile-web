@@ -2,12 +2,12 @@
 
 import { useState } from "react";
 import type { Project } from "@prisma/client";
-import { toggleFeaturedProject, updateProjectImage, updateProjectsOrder, updateFeaturedProjectsOrder, syncGithubProjects } from "./actions";
+import { toggleFeaturedProject, updateProjectImage, updateProjectsOrder, updateFeaturedProjectsOrder, syncGithubProjects, toggleProjectVisibility } from "./actions";
 import { RefreshCw, Star } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { toast } from "sonner";
 import { logSystemEvent } from "../logs/actions";
-import { ImageIcon, Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { ImageIcon, Trash2, ArrowUp, ArrowDown, Eye, EyeOff } from "lucide-react";
 
 const BUCKET_NAME = 'portofolio-images';
 
@@ -41,6 +41,20 @@ export function ProjectList({ initialProjects }: { initialProjects: ProjectWithO
       toast.error("Terjadi kesalahan", { id: toastId });
     } finally {
       setIsSyncing(false);
+    }
+  };
+
+  
+  const handleVisibilityToggle = async (id: string, currentVisibility: boolean) => {
+    const newVisibility = !currentVisibility;
+    // Optimistic update
+    setProjects(projects.map(p => p.id === id ? { ...p, isVisible: newVisibility } : p));
+    
+    const res = await toggleProjectVisibility(id, newVisibility);
+    if (!res.success) {
+      // Revert if failed
+      setProjects(projects.map(p => p.id === id ? { ...p, isVisible: currentVisibility } : p));
+      toast.error(res.error || "Gagal mengubah status visibilitas proyek");
     }
   };
 
@@ -182,7 +196,7 @@ export function ProjectList({ initialProjects }: { initialProjects: ProjectWithO
                   </div>
                   <div>
                     <h3 className="font-bold">{project.title}</h3>
-                    <p className="text-xs text-muted-foreground line-clamp-1 max-w-sm">{project.description}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-1 max-w-sm">{project.description || "Belum ada deskripsi yang ditambahkan pada repositori ini."}</p>
                   </div>
                 </div>
               </div>
@@ -211,7 +225,7 @@ export function ProjectList({ initialProjects }: { initialProjects: ProjectWithO
         </div>
         <div className="p-6 space-y-4">
           {allProjects.map((project, index) => (
-            <div key={project.id} className="p-4 border border-border rounded-xl bg-background flex flex-col md:flex-row justify-between items-start md:items-center gap-4 hover:border-primary/50 transition-colors">
+            <div key={project.id} className={`p-4 border border-border rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 transition-colors ${!project.isVisible ? "bg-muted/30 opacity-60" : "bg-background hover:border-primary/50"}`}>
               <div className="flex items-center gap-4 w-full md:w-auto">
                 <div className="flex flex-col gap-1">
                   <button 
@@ -252,7 +266,7 @@ export function ProjectList({ initialProjects }: { initialProjects: ProjectWithO
                       </span>
                     )}
                   </h3>
-                  <p className="text-sm text-muted-foreground line-clamp-1 max-w-md">{project.description}</p>
+                  <p className="text-sm text-muted-foreground line-clamp-1 max-w-md">{project.description || "Belum ada deskripsi yang ditambahkan pada repositori ini."}</p>
                 </div>
               </div>
               
@@ -304,6 +318,16 @@ export function ProjectList({ initialProjects }: { initialProjects: ProjectWithO
                     )
                   )}
                 </div>
+
+                
+                <button
+                  onClick={() => handleVisibilityToggle(project.id, project.isVisible)}
+                  disabled={project.isFeatured}
+                  className={`p-1.5 rounded-md transition-colors ${project.isFeatured ? 'opacity-30 cursor-not-allowed' : (project.isVisible ? 'text-primary hover:bg-primary/10' : 'text-muted-foreground hover:bg-muted')}`}
+                  title={project.isFeatured ? "Lepas status Featured dulu untuk menyembunyikan" : (project.isVisible ? "Sembunyikan Proyek" : "Tampilkan Proyek")}
+                >
+                  {project.isVisible ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
+                </button>
 
                 <label className="flex items-center gap-2 cursor-pointer bg-muted px-3 py-1.5 rounded-md border border-border hover:bg-background transition-colors ml-2">
                   <span className="text-sm font-medium">Featured</span>

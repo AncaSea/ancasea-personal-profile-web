@@ -34,8 +34,8 @@ export default async function Home() {
     prisma.experience.findMany({ orderBy: { startDate: "desc" } }),
     prisma.education.findMany({ orderBy: { year: "desc" } }),
     prisma.skill.findMany(),
-    prisma.project.findMany({ where: { isFeatured: true }, orderBy: { featuredOrder: "asc" }, take: 3 }),
-    prisma.project.findMany({ orderBy: { order: "asc" }, take: 6 })
+    prisma.project.findMany({ where: { isFeatured: true, isVisible: true }, orderBy: { featuredOrder: "asc" }, take: 3 }),
+    prisma.project.findMany({ where: { isVisible: true }, orderBy: { order: "asc" }, take: 6 })
   ]);
 
 

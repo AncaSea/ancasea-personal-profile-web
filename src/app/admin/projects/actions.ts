@@ -2,6 +2,23 @@
 import { prisma } from "@/utils/prisma";
 import { revalidatePath } from "next/cache";
 
+
+export async function toggleProjectVisibility(id: string, isVisible: boolean) {
+  try {
+    await prisma.project.update({
+      where: { id },
+      data: { isVisible },
+    });
+    revalidatePath("/admin/projects");
+    revalidatePath("/");
+    revalidatePath("/projects");
+    return { success: true };
+  } catch (error: any) {
+    console.error("TOGGLE VISIBILITY ERROR:", error);
+    return { success: false, error: error?.message || "Failed to update visibility" };
+  }
+}
+
 export async function toggleFeaturedProject(id: string, isFeatured: boolean) {
   try {
     await prisma.project.update({
