@@ -1,74 +1,74 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from 'react'
-import { cn } from "@/lib/utils"
+import { useEffect, useState } from 'react';
+import { cn } from "@/lib/utils";
+
+const sections = [
+  { id: "hero", label: "Hero" },
+  { id: "about", label: "About" },
+  { id: "projects", label: "Projects" },
+  { id: "contact", label: "Contact" },
+  { id: "guestbook", label: "Guestbook" },
+];
 
 export default function SectionNavigation() {
-  const [sections, setSections] = useState<HTMLElement[]>([])
-  const [activeIndex, setActiveIndex] = useState(0)
+  const [activeSection, setActiveSection] = useState("hero");
 
   useEffect(() => {
-    // Find all sections on the page
-    const sectionElements = Array.from(document.querySelectorAll('main > section')) as HTMLElement[]
-    setSections(sectionElements)
-
     const handleScroll = () => {
-      const scrollY = window.scrollY
-      const windowHeight = window.innerHeight
+      const scrollY = window.scrollY;
+      const windowHeight = window.innerHeight;
 
-      // Determine which section is currently most visible
-      let currentActiveIndex = 0
-      sectionElements.forEach((section, index) => {
-        const offsetTop = section.offsetTop
-        // If the top of the section is above the middle of the screen
-        if (scrollY >= offsetTop - windowHeight / 2) {
-          currentActiveIndex = index
+      let currentActiveId = "hero";
+      sections.forEach(({ id }) => {
+        const el = document.getElementById(id);
+        if (el) {
+          const top = el.offsetTop;
+          if (scrollY >= top - windowHeight / 3) {
+            currentActiveId = id;
+          }
         }
-      })
-      setActiveIndex(currentActiveIndex)
+      });
+      setActiveSection(currentActiveId);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth" });
     }
-
-    handleScroll()
-    window.addEventListener("scroll", handleScroll, { passive: true })
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
-
-  const scrollToSection = (index: number) => {
-    if (sections[index]) {
-      window.scrollTo({
-        top: sections[index].offsetTop,
-        behavior: "smooth"
-      })
-    }
-  }
-
-  if (sections.length <= 1) return null;
+  };
 
   return (
-    <div className="fixed right-6 top-1/2 -translate-y-1/2 z-50 flex flex-col gap-4 p-2 hidden sm:flex">
-      {sections.map((_, index) => (
+    <div className="fixed right-4 sm:right-6 top-1/2 -translate-y-1/2 z-50 hidden md:flex flex-col gap-3 p-2">
+      {sections.map(({ id, label }) => (
         <button
-          key={index}
-          onClick={() => scrollToSection(index)}
-          className="group relative flex items-center justify-center w-8 h-8 focus:outline-none"
-          aria-label={`Scroll to section ${index + 1}`}
+          key={id}
+          onClick={() => scrollTo(id)}
+          className="group relative flex items-center justify-center w-6 h-6 focus:outline-none"
+          aria-label={`Scroll to ${label}`}
         >
           {/* Tooltip */}
-          <span className="absolute right-10 px-3 py-1 rounded-md bg-popover/80 backdrop-blur-md text-popover-foreground text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap border border-border">
-            Section {index + 1}
+          <span className="absolute right-8 px-2.5 py-1 rounded-md bg-popover/90 backdrop-blur-md text-popover-foreground text-[11px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none whitespace-nowrap border border-border shadow-md">
+            {label}
           </span>
           
           {/* Dot */}
           <div 
             className={cn(
-              "rounded-full transition-all duration-500 ease-out",
-              activeIndex === index 
-                ? "bg-primary w-3 h-10 shadow-[0_0_15px_var(--color-primary)]" 
-                : "bg-muted-foreground/30 w-2 h-2 hover:bg-primary/80 hover:w-3 hover:h-3"
+              "rounded-full transition-all duration-300 ease-out",
+              activeSection === id 
+                ? "bg-primary w-2.5 h-7 shadow-[0_0_12px_var(--color-primary)] ring-2 ring-primary/30" 
+                : "bg-muted-foreground/30 w-2 h-2 hover:bg-primary/80 hover:w-2.5 hover:h-2.5"
             )}
           />
         </button>
       ))}
     </div>
-  )
+  );
 }

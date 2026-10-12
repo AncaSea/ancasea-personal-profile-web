@@ -1,11 +1,9 @@
-
 import { Hero } from "@/components/Hero";
 import { About } from "@/components/About";
 import { Projects } from "@/components/Projects";
 import { ContactForm } from "@/components/ContactForm";
 import { Guestbook } from "@/components/Guestbook";
 import { AlertHandler } from "@/components/AlertHandler";
-import { FloatingNav } from "@/components/FloatingNav";
 import { prisma } from "@/utils/prisma";
 import type { Metadata } from "next";
 
@@ -38,7 +36,6 @@ export default async function Home() {
     prisma.project.findMany({ where: { isVisible: true }, orderBy: { order: "asc" }, take: 6 })
   ]);
 
-
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Person',
@@ -53,30 +50,36 @@ export default async function Home() {
   };
 
   return (
-    <main className="relative min-h-screen overflow-hidden">
+    <main className="relative bg-background text-foreground selection:bg-primary/20 selection:text-primary overflow-x-clip">
       <AlertHandler />
-      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script 
+        id="jsonld-data"
+        type="application/ld+json" 
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} 
+      />
       
+      {/* SECTION 1: HERO */}
       <Hero profile={profile} />
+
+      {/* SECTION 2: ABOUT / EXPERIENCE / EDUCATION / ARSENAL */}
       <About experiences={experiences} education={education} skills={skills} />
+
+      {/* SECTION 3: PROJECTS SHOWCASE */}
       <Projects featuredProjects={featuredProjects} regularProjects={regularProjects} />
-      <section id="contact" className="py-20 relative z-10">
-        <div className="container mx-auto px-4">
+
+      {/* SECTION 4: CONTACT */}
+      <section id="contact" className="relative w-full min-h-screen py-20 sm:py-28 flex items-center justify-center bg-background border-t border-border/40">
+        <div className="container mx-auto px-4 w-full max-w-4xl">
           <ContactForm />
         </div>
       </section>
-      <section id="guestbook" className="bg-black/20 border-t border-white/5 py-10 relative z-10">
-        <div className="container mx-auto px-4">
+
+      {/* SECTION 5: GUESTBOOK */}
+      <section id="guestbook" className="relative w-full min-h-screen py-20 sm:py-28 flex items-center justify-center bg-background/50 border-t border-border/40">
+        <div className="container mx-auto px-4 w-full max-w-4xl">
           <Guestbook />
         </div>
       </section>
-
-      
-      
-      
-
-      
-      <FloatingNav />
     </main>
   );
 }

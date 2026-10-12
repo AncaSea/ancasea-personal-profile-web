@@ -94,13 +94,13 @@ export function Guestbook() {
         <p className="text-muted-foreground mt-4 text-lg">Leave a mark on my digital universe.</p>
       </div>
 
-      <div className="glass-panel border border-white/10 rounded-3xl p-6 md:p-8 bg-card/30 backdrop-blur-xl mb-12">
+      <div className="glass-panel border border-border/70 rounded-3xl p-6 md:p-8 bg-card/60 backdrop-blur-xl mb-12 shadow-lg">
         {!user ? (
           <div className="text-center py-8">
             <h3 className="text-xl font-bold mb-4">Sign in to leave a message</h3>
             <button
               onClick={handleLogin}
-              className="inline-flex items-center justify-center gap-3 bg-white text-black font-bold py-3 px-6 rounded-xl hover:bg-gray-200 transition-colors shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-[0.98]"
+              className="inline-flex items-center justify-center gap-3 bg-card border border-border text-foreground font-bold py-3 px-6 rounded-xl hover:bg-muted transition-colors shadow-md hover:scale-[1.02] active:scale-[0.98]"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">
                 <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -129,7 +129,7 @@ export function Guestbook() {
                 onChange={(e) => setMessage(e.target.value)}
                 maxLength={500}
                 placeholder="Write a message..."
-                className="w-full bg-background/50 border border-white/10 rounded-xl px-4 py-3 pr-16 text-sm text-foreground focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                className="w-full bg-background/80 border border-border rounded-xl px-4 py-3 pr-16 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
               />
               <button
                 type="submit"
@@ -150,7 +150,7 @@ export function Guestbook() {
           <div className="text-center py-8 text-muted-foreground border border-dashed border-white/10 rounded-2xl">Be the first to sign the guestbook!</div>
         ) : (
           entries.map((entry) => (
-            <div key={entry.id} className="flex gap-4 p-4 rounded-2xl hover:bg-white/5 transition-colors border border-transparent hover:border-white/5">
+            <div key={entry.id} className="flex gap-4 p-4 rounded-2xl hover:bg-accent/40 transition-colors border border-transparent hover:border-border/50">
               <div className="flex-shrink-0 mt-1">
                 {entry.avatarUrl ? (
                   <Image src={entry.avatarUrl} alt={entry.name} width={40} height={40} className="rounded-full border border-white/10 shadow-lg" />

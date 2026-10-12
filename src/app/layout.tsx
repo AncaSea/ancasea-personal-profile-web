@@ -76,6 +76,8 @@ export default function RootLayout({
         <html lang="en" suppressHydrationWarning>
       <head>
         <script
+          id="theme-auto-script"
+          suppressHydrationWarning
           dangerouslySetInnerHTML={{
             __html: `
               try {

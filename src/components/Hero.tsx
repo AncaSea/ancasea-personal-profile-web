@@ -66,7 +66,7 @@ export function Hero({ profile }: { profile: ProfileInfo | null }) {
   const tagline = profile?.tagline || "Building Digital Experiences";
 
   return (
-    <section id="hero" ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-12 md:py-0 overflow-hidden perspective-1000">
+    <section id="hero" ref={heroRef} className="relative min-h-screen flex flex-col items-center justify-center pt-24 pb-28 md:pb-32 overflow-hidden perspective-1000">
       
       {/* Dual Vibe Dynamic Background */}
       <div 
@@ -87,7 +87,7 @@ export function Hero({ profile }: { profile: ProfileInfo | null }) {
         
         <h1 
           onClick={() => setClickCount(prev => prev + 1)}
-          className="text-6xl md:text-9xl font-black mb-6 tracking-tighter mix-blend-difference text-foreground cursor-default select-none leading-none drop-shadow-xl"
+          className="text-4xl sm:text-6xl md:text-8xl lg:text-9xl font-black mb-4 sm:mb-6 tracking-tight text-foreground cursor-default select-none leading-tight drop-shadow-sm break-words"
         >
           {name.split(' ').map((word, i) => (
             <span key={i} className="inline-block hover:text-primary transition-colors duration-300 mr-4 last:mr-0">
@@ -96,7 +96,7 @@ export function Hero({ profile }: { profile: ProfileInfo | null }) {
           ))}
         </h1>
         
-        <p className="text-2xl md:text-4xl text-muted-foreground font-light max-w-3xl mx-auto mb-12 drop-shadow-sm">
+        <p className="text-base sm:text-2xl md:text-4xl text-muted-foreground font-light max-w-3xl mx-auto mb-8 sm:mb-12 drop-shadow-sm px-4 leading-relaxed">
           {tagline}
         </p>
         
@@ -104,15 +104,15 @@ export function Hero({ profile }: { profile: ProfileInfo | null }) {
           <MagneticButton onClick={() => document.getElementById('projects')?.scrollIntoView({ behavior: 'smooth' })} className="px-10 py-5 bg-primary text-primary-foreground rounded-full font-bold shadow-[0_0_20px_var(--color-primary)] hover:shadow-[0_0_40px_var(--color-primary)] transition-shadow">
             View Projects
           </MagneticButton>
-          <MagneticButton className="px-10 py-5 border-2 border-primary/30 rounded-full font-bold hover:bg-primary/10 transition-colors backdrop-blur-sm">
+          <MagneticButton className="px-10 py-5 border-2 border-primary/30 text-foreground rounded-full font-bold hover:bg-primary/10 transition-colors backdrop-blur-sm">
             Contact Me
           </MagneticButton>
         </div>
       </div>
 
       {/* Decorative Blobs */}
-      <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/20 rounded-full mix-blend-screen filter blur-[100px] animate-pulse pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-secondary/30 rounded-full mix-blend-screen filter blur-[100px] animate-pulse pointer-events-none" style={{ animationDelay: '2s' }} />
+      <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/20 rounded-full dark:mix-blend-screen filter blur-[100px] animate-pulse pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-secondary/30 rounded-full dark:mix-blend-screen filter blur-[100px] animate-pulse pointer-events-none" style={{ animationDelay: '2s' }} />
     </section>
   );
 }

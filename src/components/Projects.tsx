@@ -1,354 +1,338 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import type { Project } from "@prisma/client";
-import { cn } from "@/lib/utils";
-import { X, Star } from "lucide-react";
-import { MatrixTrail } from "./canvas/MatrixTrail";
-import { useRef } from "react";
+import { TerminalGrid } from "./canvas/TerminalGrid";
+import { ExternalLink, Star, X, Sparkles, Beaker, ChevronLeft, ChevronRight } from "lucide-react";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 
 interface ProjectsProps {
   featuredProjects: Project[];
   regularProjects: Project[];
 }
 
-function TiltCard({ children, onClick }: { children: React.ReactNode, onClick: () => void }) {
-  const cardRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!cardRef.current) return;
-    const rect = cardRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left; // x position within the element.
-    const y = e.clientY - rect.top;  // y position within the element.
-    
-    const centerX = rect.width / 2;
-    const centerY = rect.height / 2;
-    
-    const rotateX = ((y - centerY) / centerY) * -10; // Max rotation 10deg
-    const rotateY = ((x - centerX) / centerX) * 10;
-    
-    cardRef.current.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
-  };
-
-  const handleMouseLeave = () => {
-    if (!cardRef.current) return;
-    cardRef.current.style.transform = `perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)`;
-  };
-
-  return (
-    <div 
-      ref={cardRef}
-      className="project-card glass-panel rounded-3xl p-6 hover:border-primary/50 transition-all duration-200 ease-out flex flex-col h-full cursor-pointer"
-      onClick={onClick}
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
-      style={{ transformStyle: 'preserve-3d' }}
-    >
-      <div style={{ transform: 'translateZ(30px)' }} className="flex flex-col h-full pointer-events-none">
-        {children}
-      </div>
-    </div>
-  );
-}
-
 export function Projects({ featuredProjects, regularProjects }: ProjectsProps) {
   const [activeProject, setActiveProject] = useState<Project | null>(null);
-  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [projectTab, setProjectTab] = useState<"featured" | "experiments">("featured");
+  
+  const sectionRef = useRef<HTMLElement>(null);
+  const featuredRef = useRef<HTMLDivElement>(null);
+  const experimentsRef = useRef<HTMLDivElement>(null);
+  const carouselRef = featuredRef; // kept for scrollCarousel button compat
 
-  // Helper to get Gacha Rarity Colors for Podium
-  const getGlowStyle = (rank: number) => {
-    if (rank === 1) return { 
-      color: "#FFD700", 
-      border: "border-[#FFD700]/80 dark:border-[#FFD700]/50 hover:border-[#FFD700]", 
-      shadow: "shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_0_15px_rgba(255,215,0,0.15)]",
-      stars: 5,
-      gradient: "from-background via-background/40 to-transparent dark:from-background dark:via-[#FFD700]/10",
-      hologram: "from-transparent via-white/40 to-transparent"
-    }; // Mythic Gold
-    if (rank === 2) return { 
-      color: "#b829ea", 
-      border: "border-[#b829ea]/80 dark:border-[#b829ea]/50 hover:border-[#b829ea]", 
-      shadow: "shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_0_15px_rgba(184,41,234,0.15)]",
-      stars: 4,
-      gradient: "from-background via-background/40 to-transparent dark:from-background dark:via-[#b829ea]/10",
-      hologram: "from-transparent via-white/40 to-transparent"
-    }; // Epic Purple
-    if (rank === 3) return { 
-      color: "#00e5ff", 
-      border: "border-[#00e5ff]/80 dark:border-[#00e5ff]/50 hover:border-[#00e5ff]", 
-      shadow: "shadow-[0_8px_30px_rgba(0,0,0,0.12)] dark:shadow-[0_0_15px_rgba(0,229,255,0.15)]",
-      stars: 3,
-      gradient: "from-background via-background/40 to-transparent dark:from-background dark:via-[#00e5ff]/10",
-      hologram: "from-transparent via-white/40 to-transparent"
-    }; // Rare Blue
-    return { color: "", border: "", shadow: "", stars: 0, gradient: "", hologram: "" };
+  // Smooth horizontal scroll state (shared across carousels)
+  const velocityRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
+  const activeCarouselRef = useRef<HTMLDivElement | null>(null);
+
+  // Parallax smooth transforms
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ["start end", "end start"]
+  });
+
+  const yBg = useTransform(scrollYProgress, [0, 1], [-60, 60]);
+  const yContent = useTransform(scrollYProgress, [0, 1], [25, -25]);
+
+  const scrollCarousel = (direction: 'left' | 'right') => {
+    const el = projectTab === 'featured' ? featuredRef.current : experimentsRef.current;
+    if (el) {
+      const scrollAmount = Math.min(window.innerWidth * 0.65, 450);
+      el.scrollBy({ 
+        left: direction === 'left' ? -scrollAmount : scrollAmount, 
+        behavior: 'smooth' 
+      });
+    }
   };
 
-  // Keep original order for mobile, use CSS order for Desktop Podium
-  const orderedProjects = [
-    featuredProjects[0] ? { project: featuredProjects[0], rank: 1, position: 'center' } : null,
-    featuredProjects[1] ? { project: featuredProjects[1], rank: 2, position: 'left' } : null,
-    featuredProjects[2] ? { project: featuredProjects[2], rank: 3, position: 'right' } : null,
-  ].filter(Boolean);
+  // Momentum-based smooth horizontal scroll using RAF
+  const runMomentum = useCallback(() => {
+    const el = activeCarouselRef.current;
+    if (!el) return;
+    if (Math.abs(velocityRef.current) < 0.5) {
+      velocityRef.current = 0;
+      rafRef.current = null;
+      return;
+    }
+    el.scrollLeft += velocityRef.current;
+    velocityRef.current *= 0.88; // exponential decay — lower = smoother/slower
+    rafRef.current = requestAnimationFrame(runMomentum);
+  }, []);
+
+  // Wheel handler: accumulates velocity, starts RAF loop
+  const handleCarouselWheel = useCallback((e: WheelEvent) => {
+    const el = (e.currentTarget as HTMLDivElement);
+    if (!el || el.scrollWidth <= el.clientWidth) return;
+    e.preventDefault();
+    e.stopPropagation();
+    activeCarouselRef.current = el;
+    // Add wheel delta to velocity
+    velocityRef.current += (e.deltaY + e.deltaX) * 0.6;
+    // Clamp velocity to avoid too fast scroll
+    velocityRef.current = Math.max(-80, Math.min(80, velocityRef.current));
+    // Start RAF if not already running
+    if (!rafRef.current) {
+      rafRef.current = requestAnimationFrame(runMomentum);
+    }
+  }, [runMomentum]);
+
+  // Ref callbacks: attach/detach wheel listener the INSTANT a carousel mounts/unmounts.
+  // This is more reliable than useEffect for AnimatePresence-controlled elements,
+  // because the ref callback fires synchronously when the DOM node appears.
+  const setFeaturedRef = useCallback((node: HTMLDivElement | null) => {
+    if (featuredRef.current) {
+      featuredRef.current.removeEventListener('wheel', handleCarouselWheel);
+    }
+    featuredRef.current = node;
+    if (node) {
+      node.addEventListener('wheel', handleCarouselWheel, { passive: false });
+    }
+  }, [handleCarouselWheel]);
+
+  const setExperimentsRef = useCallback((node: HTMLDivElement | null) => {
+    if (experimentsRef.current) {
+      experimentsRef.current.removeEventListener('wheel', handleCarouselWheel);
+    }
+    experimentsRef.current = node;
+    if (node) {
+      node.addEventListener('wheel', handleCarouselWheel, { passive: false });
+    }
+  }, [handleCarouselWheel]);
+
+  // Cleanup RAF on unmount
+  useEffect(() => {
+    return () => {
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    };
+  }, []);
 
   return (
-    <section id="projects" className="relative z-10 bg-background pt-24 pb-12 overflow-hidden">
-      <MatrixTrail />
-      {/* Tech Grid Background for the entire section */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,#000_70%,transparent_100%)] pointer-events-none"></div>
+    <section 
+      ref={sectionRef}
+      id="projects" 
+      className="relative w-full min-h-screen flex flex-col justify-center items-center overflow-hidden bg-background px-4 sm:px-6 md:px-10 py-20 sm:py-28 border-t border-border/40"
+    >
+      {/* Background Canvas with Parallax Shift */}
+      <motion.div style={{ y: yBg }} className="absolute inset-0 pointer-events-none">
+        <TerminalGrid />
+      </motion.div>
+
+      {/* Ambient Floating Glow Orbs for Optical Depth */}
+      <motion.div 
+        style={{ y: useTransform(scrollYProgress, [0, 1], [-70, 70]) }}
+        className="absolute top-1/3 -right-20 w-80 h-80 bg-blue-500/10 rounded-full blur-[120px] pointer-events-none" 
+      />
+      <motion.div 
+        style={{ y: useTransform(scrollYProgress, [0, 1], [70, -70]) }}
+        className="absolute bottom-1/3 -left-20 w-80 h-80 bg-primary/10 rounded-full blur-[120px] pointer-events-none" 
+      />
       
-      {/* 1. PODIUM FEATURED SECTION */}
-      {featuredProjects.length > 0 && (
-        <div className="max-w-7xl mx-auto px-4 w-full mb-24">
-          <div className="text-center mb-16">
-            <h3 className="text-5xl md:text-7xl font-black tracking-tighter mb-4">
-              Featured <span className="text-primary">Masterpieces</span>
-            </h3>
-            <p className="text-muted-foreground text-lg">Click to reveal details.</p>
+      <motion.div style={{ y: yContent }} className="container mx-auto max-w-5xl relative z-10 w-full flex flex-col justify-center">
+        {/* Header with Sub-tabs: Featured vs Experiments */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3 mb-5 shrink-0">
+          <div>
+            <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[11px] font-mono tracking-widest uppercase mb-2">
+              <span>Showcase & Work</span>
+            </div>
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black text-foreground tracking-tight">
+              Selected <span className="text-primary">Projects</span>
+            </h2>
           </div>
 
-          <div className="flex flex-col md:flex-row justify-center items-center md:items-end gap-6 md:gap-4 h-auto md:h-[500px]">
-            {orderedProjects.map((item) => {
-              if (!item) return null;
-              const { project, rank, position } = item;
-              const glow = getGlowStyle(rank);
-              
-              const isHovered = hoveredId === project.id;
-              const isOthersHovered = hoveredId !== null && hoveredId !== project.id;
-              
-              // Responsive ordering
-              let orderClass = "";
-              if (position === 'center') orderClass = "order-1 md:order-2"; // Rank 1: First on mobile, Center on desktop
-              if (position === 'left') orderClass = "order-2 md:order-1";   // Rank 2: Second on mobile, Left on desktop
-              if (position === 'right') orderClass = "order-3 md:order-3";  // Rank 3: Third on mobile, Right on desktop
+          {/* Sub-tab Switcher: Featured vs Experiments */}
+          <div className="flex items-center gap-3">
+            <div className="inline-flex p-1 rounded-2xl bg-card/85 dark:bg-white/5 border border-border/80 dark:border-white/10 backdrop-blur-md shadow-md gap-1">
+              <button
+                onClick={() => setProjectTab("featured")}
+                className={`relative flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl font-bold text-xs sm:text-sm transition-colors duration-300 ${
+                  projectTab === "featured" ? "text-primary" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {projectTab === "featured" && (
+                  <motion.div
+                    layoutId="projectTabBadge"
+                    className="absolute inset-0 bg-primary/15 border border-primary/40 rounded-xl shadow-[0_0_12px_var(--color-primary)]"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <Sparkles size={14} className="relative z-10" />
+                <span className="relative z-10">Featured ({featuredProjects.length})</span>
+              </button>
 
-              // Base sizing
-              const baseWidth = position === 'center' ? "w-full md:w-1/3 h-[300px] md:h-[450px]" : "w-full md:w-1/4 h-[250px] md:h-[350px]";
-              
-              // Dynamic states based on hover
-              let scale = position === 'center' ? "scale-100 md:scale-110" : "scale-100 md:scale-95";
-              let zIndex = position === 'center' ? "z-30" : "z-20";
-              let opacity = position === 'center' ? "opacity-100" : "opacity-80";
+              <button
+                onClick={() => setProjectTab("experiments")}
+                className={`relative flex items-center gap-1.5 px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-xl font-bold text-xs sm:text-sm transition-colors duration-300 ${
+                  projectTab === "experiments" ? "text-purple-500" : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                {projectTab === "experiments" && (
+                  <motion.div
+                    layoutId="projectTabBadge"
+                    className="absolute inset-0 bg-purple-500/15 border border-purple-500/40 rounded-xl shadow-[0_0_12px_rgba(168,85,247,0.3)]"
+                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                  />
+                )}
+                <Beaker size={14} className="relative z-10" />
+                <span className="relative z-10">Experiments ({regularProjects.length})</span>
+              </button>
+            </div>
 
-              if (isHovered) {
-                scale = "scale-[1.05] md:scale-[1.20]";
-                zIndex = "z-50";
-                opacity = "opacity-100";
-              } else if (isOthersHovered) {
-                scale = "scale-95 md:scale-90";
-                zIndex = "z-10";
-                opacity = "opacity-40";
-              }
+            {/* Navigation Arrows */}
+            <div className="flex gap-1.5">
+              <button 
+                onClick={() => scrollCarousel('left')} 
+                aria-label="Scroll left"
+                className="p-2 rounded-full bg-card/90 dark:bg-white/5 hover:bg-accent dark:hover:bg-white/10 transition-all border border-border dark:border-white/10 text-foreground shadow-sm hover:scale-105 active:scale-95"
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <button 
+                onClick={() => scrollCarousel('right')} 
+                aria-label="Scroll right"
+                className="p-2 rounded-full bg-card/90 dark:bg-white/5 hover:bg-accent dark:hover:bg-white/10 transition-all border border-border dark:border-white/10 text-foreground shadow-sm hover:scale-105 active:scale-95"
+              >
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
 
-              return (
-                <div 
-                  key={project.id} 
-                  onClick={() => setActiveProject(project)}
-                  onMouseEnter={() => setHoveredId(project.id)}
-                  onMouseLeave={() => setHoveredId(null)}
-                  className={cn(
-                    "relative cursor-pointer rounded-3xl bg-card transition-all duration-500 ease-out transform group overflow-hidden border-2",
-                    orderClass, baseWidth, scale, zIndex, opacity,
-                    glow.border,
-                    glow.shadow
-                  )}
-                >
-                  {/* Holographic Foil Animation Layer */}
-                  <div className={cn(
-                    "absolute inset-0 z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-tr translate-y-[100%] -translate-x-[100%] group-hover:translate-y-[-100%] group-hover:translate-x-[100%] ease-out",
-                    glow.hologram
-                  )} style={{ transitionDuration: '1.5s' }}></div>
-
-                  {/* Inner Gradient Vignette / Frame */}
-                  <div className={cn("absolute inset-0 z-10 pointer-events-none rounded-3xl border-[4px] opacity-20 mix-blend-overlay", glow.border)}></div>
-
-                  {/* Image Background */}
-                  <div className="absolute inset-0 rounded-3xl overflow-hidden opacity-50 group-hover:opacity-80 transition-opacity duration-500">
-                    {project.imageUrl ? (
-                      <img src={project.imageUrl} alt={project.title} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full bg-muted flex items-center justify-center font-mono text-6xl opacity-30">
-                        {project.title.substring(0, 2).toUpperCase()}
+        {/* Dynamic Carousel Display */}
+        <div className="w-full">
+          <AnimatePresence mode="wait">
+            {/* VIEW 1: FEATURED MASTERPIECES */}
+            {projectTab === "featured" && (
+              <motion.div
+                key="featured-carousel"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+                ref={setFeaturedRef} data-lenis-prevent="true" data-lenis-prevent-wheel="true" className="w-full overflow-x-auto no-scrollbar flex gap-4 sm:gap-5 items-stretch py-2 overscroll-x-contain cursor-grab active:cursor-grabbing"
+              >
+                {featuredProjects.map(project => (
+                  <div 
+                    key={project.id} 
+                    onClick={() => setActiveProject(project)}
+                    className="shrink-0 w-[85vw] sm:w-[62vw] md:w-[48vw] lg:w-[42vw] max-w-[500px] cursor-pointer group"
+                  >
+                    <div className="h-[270px] sm:h-[285px] rounded-2xl overflow-hidden border border-border/80 dark:border-white/10 bg-card/90 dark:bg-white/5 backdrop-blur-xl shadow-lg hover:shadow-xl hover:border-primary/50 transition-all duration-300 flex flex-col sm:flex-row group-hover:-translate-y-1">
+                      {/* Image Thumbnail */}
+                      <div className="w-full sm:w-[46%] h-36 sm:h-auto relative overflow-hidden bg-muted shrink-0">
+                        {project.imageUrl ? (
+                          <img 
+                            src={project.imageUrl} 
+                            alt={project.title} 
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
+                          />
+                        ) : (
+                          <div className="w-full h-full bg-primary/5 flex items-center justify-center text-4xl font-black text-primary/30">
+                            {project.title.substring(0, 2).toUpperCase()}
+                          </div>
+                        )}
+                        <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-background/90 via-transparent to-transparent opacity-70" />
                       </div>
-                    )}
-                  </div>
+                      
+                      {/* Details */}
+                      <div className="w-full sm:w-[54%] p-4 sm:p-5 flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center gap-1.5 mb-2">
+                            {project.language && (
+                              <span className="text-[10px] font-mono bg-muted dark:bg-white/10 text-muted-foreground px-2 py-0.5 rounded-md border border-border dark:border-white/20 font-semibold">
+                                {project.language}
+                              </span>
+                            )}
+                            {project.stars !== undefined && project.stars > 0 && (
+                              <span className="flex items-center gap-1 text-[10px] bg-yellow-500/10 text-yellow-500 font-bold px-2 py-0.5 rounded-md border border-yellow-500/20">
+                                <Star className="w-2.5 h-2.5 fill-yellow-500" />
+                                {project.stars}
+                              </span>
+                            )}
+                          </div>
+                          <h3 className="text-sm sm:text-base font-bold text-foreground group-hover:text-primary transition-colors line-clamp-1 mb-1.5">
+                            {project.title}
+                          </h3>
+                          <p className="text-muted-foreground text-xs line-clamp-2 leading-relaxed">
+                            {project.description || "Click to see more details about this masterpiece."}
+                          </p>
+                        </div>
 
-                  {/* Gradient Overlay (Gacha Colored Style) */}
-                  <div className={cn("absolute inset-0 bg-gradient-to-t rounded-3xl pointer-events-none", glow.gradient)} />
-
-                  {/* Content */}
-                  <div className="absolute bottom-0 left-0 w-full p-6 flex flex-col justify-end z-30">
-                    <div className="flex flex-wrap items-center gap-3 mb-2">
-                      <span 
-                        className="text-xs font-black uppercase tracking-widest transition-all duration-500 drop-shadow-md" 
-                        style={{ 
-                          color: glow.color,
-                          textShadow: isHovered ? "0 0 10px " + glow.color : "0 0 3px " + glow.color + "40"
-                        }}
-                      >
-                        {rank === 1 ? "Mythic Rank" : rank === 2 ? "Epic Rank" : "Rare Rank"}
-                      </span>
-                      {project.language && (
-                        <span className="text-[10px] font-mono bg-background/50 backdrop-blur-md px-2 py-0.5 rounded-sm border border-white/10 text-white shadow-sm">
-                          {project.language}
-                        </span>
-                      )}
-                      {project.stars !== undefined && project.stars > 0 && (
-                        <span className="flex items-center gap-1 text-[10px] bg-yellow-500/20 backdrop-blur-md text-yellow-300 px-2 py-0.5 rounded-sm border border-yellow-500/30">
-                          <Star className="w-3 h-3 fill-yellow-500" />
-                          {project.stars}
-                        </span>
-                      )}
+                        <div className="mt-3 pt-2.5 border-t border-border/40 flex items-center gap-1.5 text-xs font-bold text-primary">
+                          <span>Explore Project</span>
+                          <ChevronRight size={13} className="group-hover:translate-x-1 transition-transform" />
+                        </div>
+                      </div>
                     </div>
-                    <h4 
-                      className="text-2xl md:text-3xl font-black line-clamp-2 transition-all duration-500 text-foreground"
-                      style={{ textShadow: isHovered ? "0 0 15px " + glow.color + "80" : "none" }}
+                  </div>
+                ))}
+              </motion.div>
+            )}
+
+            {/* VIEW 2: LATEST EXPERIMENTS */}
+            {projectTab === "experiments" && (
+              <motion.div
+                key="experiments-carousel"
+                initial={{ opacity: 0, scale: 0.98 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.98 }}
+                transition={{ duration: 0.2 }}
+                ref={setExperimentsRef} data-lenis-prevent="true" data-lenis-prevent-wheel="true" className="w-full overflow-x-auto no-scrollbar flex gap-4 items-stretch py-2 overscroll-x-contain cursor-grab active:cursor-grabbing"
+              >
+                {regularProjects.map(project => {
+                  let stack: string[] = [];
+                  try {
+                    if (project.techStack) {
+                      stack = Array.isArray(project.techStack) ? project.techStack as string[] : JSON.parse(project.techStack as string);
+                    }
+                  } catch (e) {}
+
+                  return (
+                    <div 
+                      key={project.id} 
+                      onClick={() => setActiveProject(project)}
+                      className="shrink-0 w-[70vw] sm:w-[42vw] md:w-[30vw] lg:w-[22vw] max-w-[280px] cursor-pointer group"
                     >
-                      {project.title}
-                    </h4>
-                  </div>
+                      <div className="h-[240px] sm:h-[255px] p-4 sm:p-4.5 rounded-2xl bg-card/90 dark:bg-white/5 border border-border/80 dark:border-white/10 hover:border-purple-500/50 shadow-md hover:shadow-lg transition-all duration-300 flex flex-col justify-between group-hover:-translate-y-1">
+                        <div>
+                          <span className="text-[10px] font-mono text-purple-500 bg-purple-500/10 px-2 py-0.5 rounded-md border border-purple-500/20 mb-2 inline-block font-semibold">
+                            Repository
+                          </span>
+                          <h4 className="text-xs sm:text-sm font-bold line-clamp-1 text-foreground group-hover:text-purple-500 transition-colors mb-1.5">
+                            {project.title}
+                          </h4>
+                          <p className="text-xs text-muted-foreground line-clamp-3 leading-relaxed">
+                            {project.description || "Experimental repository and playground project."}
+                          </p>
+                        </div>
+
+                        <div className="mt-3 pt-2 border-t border-border/40 flex flex-wrap gap-1">
+                          {stack.slice(0, 3).map((tech, j) => (
+                            <span key={j} className="text-[9px] px-1.5 py-0.5 bg-muted dark:bg-white/10 text-muted-foreground rounded font-mono font-medium">
+                              {tech}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {/* View All Archive Card */}
+                <div className="shrink-0 w-[45vw] sm:w-[28vw] md:w-[18vw] max-w-[220px] h-[240px] sm:h-[255px] flex items-center justify-center">
+                  <a 
+                    href="/projects" 
+                    className="w-full h-full p-4 rounded-2xl border-2 border-dashed border-border hover:border-primary text-muted-foreground hover:text-primary font-bold flex flex-col items-center justify-center gap-2 group transition-all"
+                  >
+                    <div className="w-8 h-8 rounded-full bg-primary/10 border border-primary/30 flex items-center justify-center group-hover:scale-110 group-hover:bg-primary group-hover:text-primary-foreground transition-all">
+                      <ChevronRight size={16} />
+                    </div>
+                    <span className="text-xs text-center">View All Archive</span>
+                  </a>
                 </div>
-              );
-            })}
-          </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
-      )}
-
-      {/* 2. MODAL OVERLAY */}
-      {activeProject && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div 
-            className="absolute inset-0 bg-background/80 backdrop-blur-md" 
-            onClick={() => setActiveProject(null)}
-          />
-          <div className="relative w-full max-w-4xl glass-panel bg-card/90 rounded-3xl shadow-2xl border border-border overflow-hidden flex flex-col md:flex-row h-[80vh] md:h-[60vh] animate-in zoom-in-95 duration-300">
-            <button 
-              onClick={() => setActiveProject(null)}
-              className="absolute top-4 right-4 z-10 w-10 h-10 bg-background/50 backdrop-blur-sm rounded-full flex items-center justify-center hover:bg-destructive hover:text-destructive-foreground transition-colors"
-            >
-              <X size={20} />
-            </button>
-            
-            <div className="w-full md:w-1/2 h-48 md:h-full bg-muted relative">
-              {activeProject.imageUrl ? (
-                <img src={activeProject.imageUrl} alt={activeProject.title} className="w-full h-full object-cover" />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center font-mono text-6xl opacity-30">
-                  {activeProject.title.substring(0, 2).toUpperCase()}
-                </div>
-              )}
-            </div>
-            
-            <div className="w-full md:w-1/2 p-8 overflow-y-auto flex flex-col">
-              <div className="flex items-center flex-wrap gap-4 mb-4">
-                  <h3 className="text-3xl font-black">{activeProject.title}</h3>
-                  <div className="flex items-center gap-2">
-                    {activeProject.language && (
-                      <span className="text-xs font-mono bg-primary/10 text-primary px-3 py-1 rounded-full border border-primary/20">
-                        {activeProject.language}
-                      </span>
-                    )}
-                    {activeProject.stars !== undefined && (
-                      <span className="flex items-center gap-1 text-sm bg-yellow-500/10 text-yellow-500 font-bold px-3 py-1 rounded-full border border-yellow-500/20">
-                        <Star className="w-4 h-4 fill-yellow-500" />
-                        {activeProject.stars}
-                      </span>
-                    )}
-                  </div>
-                </div>
-              <p className="text-muted-foreground mb-8 leading-relaxed">
-                {activeProject.description || "Belum ada deskripsi yang ditambahkan pada repositori ini."}
-              </p>
-              
-              <div className="mb-8">
-                <h4 className="text-sm font-bold uppercase tracking-widest text-primary mb-3">Tech Stack</h4>
-                <div className="flex flex-wrap gap-2">
-                  {(() => {
-                    let stack: string[] = [];
-                    try {
-                      stack = Array.isArray(activeProject.techStack) ? activeProject.techStack as string[] : JSON.parse(activeProject.techStack as string);
-                    } catch(e) {}
-                    return stack.map((tech, j) => (
-                      <span key={j} className="text-sm px-3 py-1.5 bg-primary/10 text-primary rounded-md font-mono">
-                        {tech}
-                      </span>
-                    ));
-                  })()}
-                </div>
-              </div>
-
-              {activeProject.link && (
-                <a 
-                  href={activeProject.link} 
-                  target="_blank" 
-                  rel="noreferrer" 
-                  className="mt-auto block w-full py-4 bg-primary text-primary-foreground text-center rounded-xl font-bold hover:scale-[1.02] transition-transform"
-                >
-                  Visit Project
-                </a>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 3. REGULAR GRID SECTION */}
-      <div className="max-w-7xl mx-auto px-4 mt-24">
-        <h3 className="text-3xl md:text-5xl font-black mb-16 tracking-tighter">
-          Latest <span className="text-primary">Experiments</span>
-        </h3>
-        
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 perspective-1000">
-          {regularProjects.length > 0 ? regularProjects.map((project, i) => {
-            let stack: string[] = [];
-            try {
-              if (project.techStack) {
-                stack = Array.isArray(project.techStack) 
-                  ? project.techStack as string[]
-                  : JSON.parse(project.techStack as string);
-              }
-            } catch (e) {}
-
-            return (
-              <TiltCard key={project.id} onClick={() => setActiveProject(project)}>
-                <div className="flex items-start justify-between gap-4 mb-3">
-                  <h4 className="text-2xl font-bold line-clamp-1">{project.title}</h4>
-                  <div className="flex items-center gap-2 shrink-0 mt-1">
-                    {project.language && (
-                      <span className="text-[10px] font-mono bg-primary/10 text-primary px-2 py-0.5 rounded-md border border-primary/20">
-                        {project.language}
-                      </span>
-                    )}
-                    {project.stars !== undefined && project.stars > 0 && (
-                      <span className="flex items-center gap-1 text-[10px] bg-yellow-500/10 text-yellow-500 font-bold px-2 py-0.5 rounded-md border border-yellow-500/20">
-                        <Star className="w-3 h-3 fill-yellow-500" />
-                        {project.stars}
-                      </span>
-                    )}
-                  </div>
-                </div>
-                <p className="text-muted-foreground mb-6 line-clamp-3">
-                  {project.description || "Belum ada deskripsi yang ditambahkan pada repositori ini."}
-                </p>
-                
-                <div className="flex flex-wrap gap-2 mb-6 mt-auto">
-                  {stack.slice(0, 3).map((tech, j) => (
-                    <span key={j} className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-md font-mono pointer-events-auto">
-                      {tech}
-                    </span>
-                  ))}
-                  {stack.length > 3 && <span className="text-xs px-2 py-1 bg-primary/5 text-primary/50 rounded-md pointer-events-auto">+{stack.length - 3}</span>}
-                </div>
-              </TiltCard>
-            );
-          }) : <p className="text-muted-foreground text-center col-span-full">No projects found.</p>}
-        </div>
-
-        <div className="flex justify-center mt-16">
-          <a href="/projects" className="px-8 py-4 bg-primary text-primary-foreground rounded-full font-bold hover:scale-105 transition-transform shadow-xl hover:shadow-[0_0_30px_var(--color-primary)]">
-            View All Archive
-          </a>
-        </div>
-      </div>
+      </motion.div>
     </section>
   );
 }

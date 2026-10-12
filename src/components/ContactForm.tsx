@@ -33,7 +33,7 @@ export function ContactForm() {
   };
 
   return (
-    <div className="relative group rounded-3xl overflow-hidden glass-panel border border-white/10 p-8 w-full max-w-2xl mx-auto mt-12 mb-24 z-10">
+    <div className="relative group rounded-3xl overflow-hidden glass-panel border border-border/70 bg-card/60 p-8 w-full max-w-2xl mx-auto mt-12 mb-24 z-10 shadow-xl">
       {/* Background Glow */}
       <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-gradient-to-br from-purple-500/10 via-cyan-500/10 to-transparent blur-3xl pointer-events-none -z-10 group-hover:opacity-100 opacity-50 transition-opacity duration-1000" />
       
@@ -54,7 +54,7 @@ export function ContactForm() {
               type="text" 
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              className="w-full bg-background/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-muted-foreground/30"
+              className="w-full bg-background/80 border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-muted-foreground/50"
               placeholder="John Doe"
             />
           </div>
@@ -66,7 +66,7 @@ export function ContactForm() {
               type="email" 
               value={formData.email}
               onChange={(e) => setFormData({...formData, email: e.target.value})}
-              className="w-full bg-background/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-muted-foreground/30"
+              className="w-full bg-background/80 border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-muted-foreground/50"
               placeholder="john@example.com"
             />
           </div>
@@ -80,7 +80,7 @@ export function ContactForm() {
             rows={4}
             value={formData.message}
             onChange={(e) => setFormData({...formData, message: e.target.value})}
-            className="w-full bg-background/50 border border-white/10 rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary/50 focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-muted-foreground/30 resize-none"
+            className="w-full bg-background/80 border border-border rounded-xl px-4 py-3 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all placeholder:text-muted-foreground/50 resize-none"
             placeholder="Tell me about your project..."
           />
         </div>

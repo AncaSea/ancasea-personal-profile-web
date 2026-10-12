@@ -7,14 +7,23 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
   const pathname = usePathname();
 
   useEffect(() => {
-    // Disable smooth scrolling in admin dashboard for native UX and middle-mouse scrolling
     if (pathname?.startsWith('/admin')) {
       return;
     }
 
     const lenis = new Lenis({
       autoRaf: true,
-      duration: 1.2,
+      duration: 1.1,
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      smoothWheel: true,
+      touchMultiplier: 1.5,
+      allowNestedScroll: true,
+      prevent: (node) => {
+        return (
+          node.hasAttribute('data-lenis-prevent') ||
+          node.getAttribute('data-lenis-prevent') === 'true'
+        );
+      },
     });
     
     return () => lenis.destroy();
